@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Letters and Words</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f0e17;--surface:#1a1929;--card:#1e1d30;--card2:#252438;
+  --accent:#e94560;--accent2:#f5a623;--accent3:#7c5cbf;
+  --text:#f0eeff;--muted:#7a7a9a;--green:#2ecc71;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden;user-select:none}
+
+.score-badge{background:rgba(245,166,35,.12);border:2px solid rgba(245,166,35,.3);color:var(--accent2);font-size:24px;font-weight:700;padding:8px 16px;border-radius:22px;line-height:1}
+
+.nav-tabs{display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,0.07)}
+.nav-tab{flex:1;padding:14px 4px 12px;text-align:center;font-size:30px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;line-height:1}
+.nav-tab.active{color:var(--text);border-bottom-color:var(--accent3)}
+
+.tabs-row{display:flex;align-items:center;gap:10px;padding:12px 12px 0}
+.tabs{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;flex:1}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:12px 20px;border-radius:24px;border:1.5px solid rgba(255,255,255,0.08);background:transparent;color:var(--muted);font-size:30px;font-weight:500;cursor:pointer;transition:all .15s;line-height:1}
+.tab.active{background:var(--accent3);border-color:var(--accent3);color:#fff}
+
+.prog-row{display:flex;align-items:center;gap:10px;padding:8px 18px 0;font-size:12px;color:var(--muted)}
+.prog-bar{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,0.08);overflow:hidden}
+.prog-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent3),var(--accent));transition:width .4s ease}
+
+.scene{padding:10px 12px;display:flex;flex-direction:column;align-items:center;gap:0}
+
+.learn-media-row{width:100%;display:flex;align-items:center;gap:10px;margin-bottom:10px}
+
+.img-wrap{
+  flex:1;width:100%;height:240px;border-radius:20px;
+  background:var(--card);border:1px solid rgba(255,255,255,0.06);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;cursor:pointer;transition:transform .1s
+}
+.img-wrap:active{transform:scale(0.98)}
+.img-bg{position:absolute;inset:0;opacity:.07;font-size:200px;display:flex;align-items:center;justify-content:center;filter:blur(8px);transform:scale(1.2)}
+.img-emoji{font-size:120px;line-height:1;position:relative;z-index:1;transition:transform .3s}
+.img-emoji.pop{animation:pop .35s ease}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.25)}70%{transform:scale(0.93)}100%{transform:scale(1)}}
+.img-hint{position:absolute;bottom:10px;right:12px;font-size:11px;color:rgba(255,255,255,0.25)}
+.img-play-ring{position:absolute;inset:0;border-radius:20px;pointer-events:none;border:3px solid var(--accent);opacity:0;transition:opacity .2s}
+.img-wrap.playing .img-play-ring{opacity:1;animation:ring .6s ease-out forwards}
+@keyframes ring{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(1.04)}}
+
+.tiles-row{display:flex;gap:12px;justify-content:center;margin-bottom:14px;flex-wrap:nowrap;width:100%;min-height:160px;align-items:center}
+.tile{flex:0 1 100px;width:100px;height:130px;border-radius:14px;background:var(--card2);border:2px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:3px;transition:transform .1s,background .15s,border-color .15s;position:relative;overflow:hidden}
+.tile.flash{transform:scale(0.88);background:var(--accent);border-color:var(--accent)}
+.tile.lit{background:#4a1a2a;border-color:#e94560}
+.tile.lit .tile-ltr{color:#ff4466}
+.tile:hover{border-color:rgba(255,255,255,0.18);background:#2a2940}
+.tile-ltr{font-size:48px;font-weight:700;line-height:1}
+.tile.correct{background:#1a3a25 !important;border-color:var(--green) !important}
+.tile.wrong{animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+
+.learn-nav-section{width:100%;display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.img-nav-btn.full-height{width:136px;height:240px;border-radius:14px;border:1.5px solid rgba(255,255,255,0.08);background:var(--surface);color:var(--text);font-size:24px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;flex:0 0 136px}
+.img-nav-btn.full-height.nxt{background:rgba(233,69,96,.1);border-color:rgba(233,69,96,.3);color:#ff8099}
+
+.word-audio-row{width:100%;display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.word-meta{flex:1;min-width:0}
+.word-en{font-size:32px;font-weight:700;letter-spacing:.06em;margin-bottom:2px}
+.word-ru{font-size:24px;color:var(--accent2);font-weight:500}
+
+.play-btn{width:auto;min-width:140px;padding:12px 14px;border-radius:12px;background:var(--accent);border:none;color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s,transform .1s;white-space:nowrap}
+.play-btn:active{transform:scale(0.97);opacity:.85}
+.play-btn.playing{opacity:.6;pointer-events:none}
+
+.mode-row{display:flex;gap:8px;width:100%;margin-bottom:12px}
+.mode-btn{flex:1;padding:12px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.08);background:transparent;color:var(--muted);font-size:34px;font-weight:500;cursor:pointer;transition:all .15s;line-height:1}
+.mode-btn.active{background:rgba(124,92,191,.2);border-color:var(--accent3);color:var(--text)}
+
+.guess-header{text-align:center;margin-bottom:12px}
+.guess-emoji-big{font-size:72px;line-height:1;display:block;margin-bottom:6px}
+.guess-prompt{font-size:15px;color:var(--muted);min-height:22px}
+.guess-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-bottom:10px}
+.guess-opt{padding:12px 8px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.08);background:var(--card2);color:var(--text);font-size:15px;font-weight:600;cursor:pointer;text-align:center;transition:all .15s;line-height:1.2}
+.guess-opt .go-en{font-size:18px;font-weight:700;display:block;letter-spacing:.04em}
+.guess-opt .go-ru{font-size:12px;color:var(--muted);display:block;margin-top:2px}
+.guess-opt:hover{border-color:rgba(255,255,255,0.2)}
+.guess-opt.correct{background:#1a3a25;border-color:var(--green)}
+.guess-opt.correct .go-en,.guess-opt.correct .go-ru{color:var(--green)}
+.guess-opt.wrong{background:#3a1a1a;border-color:var(--accent)}
+.guess-opt.wrong .go-en{color:var(--accent)}
+.guess-result{text-align:center;font-size:54px;font-weight:700;line-height:1;min-height:64px}
+
+
+.sound-controls{display:flex;justify-content:center;width:100%;margin:0 0 12px}
+.sound-play-btn{width:100%;padding:12px 14px;border-radius:12px;background:var(--accent3);border:1.5px solid rgba(255,255,255,0.15);color:#fff;font-size:22px;font-weight:700;cursor:pointer;line-height:1;transition:opacity .15s,transform .1s}
+.sound-play-btn:active{transform:scale(0.98);opacity:.85}
+.sound-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin-bottom:10px;justify-items:stretch}
+.sound-opt{padding:16px 12px;border-radius:14px;border:2px solid rgba(255,255,255,0.08);background:var(--card2);color:var(--text);font-size:48px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;line-height:1;min-height:80px;width:100%;max-width:none;display:flex;align-items:center;justify-content:center}
+.sound-opt:hover{border-color:rgba(255,255,255,0.2)}
+.sound-opt.correct{background:#1a3a25;border-color:var(--green)}
+.sound-opt.correct{color:var(--green)}
+.sound-opt.wrong{background:#3a1a1a;border-color:var(--accent)}
+.sound-opt.wrong{color:var(--accent)}
+.sound-result{text-align:center;font-size:54px;font-weight:700;line-height:1;min-height:64px}
+.version-display{position:fixed;bottom:12px;right:18px;font-size:11px;color:rgba(255,255,255,0.35);font-family:monospace;pointer-events:none}
+.autoplay-btn{flex-shrink:0;padding:8px 18px;border-radius:22px;border:2px solid #7c5cbf;background:#252438;color:#d0c8ff;font-size:24px;font-weight:700;cursor:pointer;white-space:nowrap;line-height:1}
+.autoplay-btn.on{background:#5c2430;border-color:#e94560;color:#ff8099}
+.lang-select{flex-shrink:0;height:46px;min-width:84px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.12);background:#252438;color:#f0eeff;padding:0 10px;font-size:24px;font-weight:700;line-height:1}
+
+.review-block{width:100%;max-height:620px;overflow-y:auto;padding-right:4px}
+.review-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.review-card{background:var(--card2);border:1.5px solid rgba(255,255,255,0.08);border-radius:12px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:150px}
+.review-thumb{width:72px;height:72px;display:flex;align-items:center;justify-content:center;margin-bottom:6px;font-size:52px;line-height:1}
+.review-thumb img{max-width:72px;max-height:72px;object-fit:contain}
+.review-en{font-size:14px;font-weight:700;line-height:1.1;letter-spacing:.04em;text-align:center}
+.review-ru{font-size:11px;color:var(--muted);line-height:1.2;text-align:center;margin-top:2px}
+
+.nav-row{display:flex;gap:10px;width:100%}
+.nav-btn{flex:1;padding:14px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.08);background:var(--surface);color:var(--text);font-size:15px;font-weight:500;cursor:pointer;transition:background .15s}
+.nav-btn.nxt{background:rgba(233,69,96,.1);border-color:rgba(233,69,96,.3);color:#ff8099}
+.nav-btn:active{opacity:.75}
+
+.streak{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--accent2);min-height:20px;justify-content:center;padding:6px 0}
+.status{font-size:12px;color:var(--muted);text-align:center;min-height:18px;padding-bottom:16px}
+.status.on{color:var(--accent2)}
+.swipe-hint{font-size:11px;color:rgba(255,255,255,0.15);text-align:center;padding:0 0 8px}
+.scene-inner{transition:opacity .18s,transform .18s;width:100%;display:flex;flex-direction:column;align-items:center}
+.scene-inner.out{opacity:0;transform:translateY(12px)}
+#learn-block{width:100%}
+
+/* ===== ALPHABET ===== */
+#screen-alpha{display:none;padding:12px 14px 30px}
+.alpha-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;margin-bottom:14px}
+.alpha-card{border-radius:14px;background:var(--card2);border:2px solid rgba(255,255,255,0.07);padding:10px 6px 8px;text-align:center;cursor:pointer;transition:all .15s}
+.alpha-card:active{transform:scale(0.93)}
+.alpha-card.active-card{border-color:var(--accent3);background:rgba(124,92,191,.15)}
+.alpha-card .ac-ltr{font-size:36px;font-weight:700;line-height:1;display:block}
+
+.alpha-detail{background:var(--card);border-radius:16px;padding:14px;margin-bottom:12px;display:none}
+.alpha-detail-ltr{font-size:64px;font-weight:700;text-align:center;line-height:1;margin-bottom:4px}
+.alpha-play-btn{width:100%;padding:12px;border-radius:10px;background:var(--accent3);border:none;color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.alpha-play-btn:active{opacity:.75}
+
+.alpha-words{background:var(--card);border-radius:16px;padding:14px 14px 10px;margin-bottom:10px}
+.alpha-words-title{font-size:12px;color:var(--muted);margin-bottom:10px;letter-spacing:.03em}
+.alpha-word-list{display:flex;flex-direction:column;gap:8px}
+
+/* chip row */
+.alpha-word-chip{display:flex;align-items:center;gap:8px;background:var(--card2);border:1.5px solid rgba(255,255,255,0.07);border-radius:12px;padding:8px 12px;cursor:pointer;transition:all .15s;width:100%}
+.alpha-word-chip.expanded{border-color:var(--accent3);background:rgba(124,92,191,.12);border-radius:12px 12px 0 0}
+.alpha-word-chip .ch-emoji{font-size:20px;flex-shrink:0}
+.alpha-word-chip .ch-word{font-size:15px;font-weight:700}
+.alpha-word-chip .ch-ru{font-size:12px;color:var(--muted)}
+.alpha-word-chip .ch-hint{margin-left:auto;font-size:11px;color:var(--muted);flex-shrink:0}
+
+/* expand panel */
+.alpha-word-expand{display:none;background:var(--surface);border:1.5px solid var(--accent3);border-top:none;border-radius:0 0 12px 12px;padding:12px 10px 10px}
+.alpha-word-expand.open{display:block}
+
+/* big emoji inside expand */
+.aex-img{width:100%;height:130px;border-radius:12px;background:var(--card);border:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;margin-bottom:10px;cursor:pointer}
+.aex-img-bg{position:absolute;inset:0;opacity:.07;font-size:140px;display:flex;align-items:center;justify-content:center;filter:blur(6px);transform:scale(1.2)}
+.aex-img-em{font-size:72px;line-height:1;position:relative;z-index:1}
+.aex-img-em.pop{animation:pop .35s ease}
+
+.alpha-exp-tiles{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+.alpha-exp-tile{flex:1;min-width:52px;max-width:70px;height:72px;border-radius:12px;background:var(--card2);border:2px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:2px;transition:transform .1s,background .15s,border-color .15s}
+.alpha-exp-tile.flash{transform:scale(0.86);background:var(--accent);border-color:var(--accent)}
+.alpha-exp-tile .et-ltr{font-size:26px;font-weight:700;line-height:1}
+.alpha-exp-play{width:100%;padding:9px;border-radius:9px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.alpha-exp-play:active{opacity:.75}
+</style>
+</head>
+<body>
+
+<div class="nav-tabs">
+  <div class="nav-tab active" id="navtab-words" onclick="showScreen('words')">📚</div>
+  <div class="nav-tab" id="navtab-alpha" onclick="showScreen('alpha')">🔡</div>
+  <div class="nav-tab" id="navtab-sound" onclick="showScreen('sound')">🔊</div>
+</div>
+
+<!-- WORDS SCREEN -->
+<div id="screen-words">
+  <div class="tabs-row">
+    <div class="tabs" id="tabs"></div>
+    <select id="lang-select" class="lang-select" onchange="setLang(this.value)">
+      <option value="ru">🇷🇺</option>
+      <option value="fr">🇫🇷</option>
+      <option value="es">🇪🇸</option>
+      <option value="zh">🇨🇳</option>
+      <option value="hi">🇮🇳</option>
+      <option value="ar">🇸🇦</option>
+    </select>
+    <button id="btn-autoplay" class="autoplay-btn" onclick="toggleAutoplay()">▶</button>
+    <div class="score-badge" id="score-badge">⭐ 0</div>
+  </div>
+  <div class="prog-row">
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+  <div class="scene">
+  <div class="scene-inner" id="scene-inner">
+    <div style="width:100%;display:flex;padding:10px 0 8px">
+      <div class="mode-row" style="margin:0;flex:1">
+        <button class="mode-btn active" id="btn-learn" onclick="stopAutoplay(); setMode('learn')">📖</button>
+        <button class="mode-btn" id="btn-guess" onclick="stopAutoplay(); setMode('guess')">🎯</button>
+        <button class="mode-btn" id="btn-review" onclick="stopAutoplay(); setMode('review')">📌</button>
+      </div>
+    </div>
+    <div id="learn-block">
+      <div class="learn-nav-section">
+        <button class="img-nav-btn full-height" onclick="stopAutoplay(); go(-1)">←</button>
+        <div class="img-wrap" id="img-wrap" onclick="stopAutoplay(); onImageClick()">
+          <div class="img-bg" id="img-bg"></div>
+          <div class="img-emoji" id="img-emoji"></div>
+          <div class="img-play-ring"></div>
+        </div>
+        <button class="img-nav-btn nxt full-height" onclick="stopAutoplay(); go(1)">→</button>
+      </div>
+      <div class="tiles-row" id="tiles-row"></div>
+      <div class="word-audio-row">
+        <div class="word-meta">
+          <div class="word-en" id="word-en"></div>
+          <div class="word-ru" id="word-ru"></div>
+        </div>
+        <button class="play-btn" id="play-btn" onclick="stopAutoplay(); sayWord()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="guess-block" style="display:none;width:100%">
+      <div class="guess-header">
+        <span class="guess-emoji-big" id="guess-emoji"></span>
+        <div class="guess-prompt" id="guess-prompt">Какое слово?</div>
+      </div>
+      <div class="guess-options" id="guess-opts"></div>
+      <div class="guess-result" id="guess-result"></div>
+    </div>
+    <div id="review-block" class="review-block">
+      <div id="review-grid" class="review-grid"></div>
+    </div>
+    <div class="streak" id="streak"></div>
+    <div class="status" id="status" style="display:none"></div>
+    <div class="swipe-hint" id="swipe-hint" style="display:none"></div>
+  </div>
+  </div>
+</div>
+
+<!-- ALPHABET SCREEN -->
+<div id="screen-alpha">
+  <div class="alpha-grid" id="alpha-grid"></div>
+  <div class="alpha-detail" id="alpha-detail">
+    <div class="alpha-detail-ltr" id="alpha-det-ltr"></div>
+  </div>
+  <div class="alpha-words" id="alpha-words-block" style="display:none">
+    <div class="alpha-words-title" id="alpha-words-title"></div>
+    <div class="alpha-word-list" id="alpha-word-list"></div>
+  </div>
+</div>
+
+<!-- SOUND GUESS SCREEN -->
+<div id="screen-sound" style="display:none;padding:12px 14px 30px">
+  <div class="sound-header" style="display:none">
+    <div class="sound-prompt" id="sound-prompt"></div>
+  </div>
+  <div class="sound-controls">
+    <button class="sound-play-btn" id="sound-play-btn" onclick="playSoundLetter()">▶</button>
+  </div>
+  <div class="sound-options" id="sound-opts"></div>
+  <div class="sound-result" id="sound-result"></div>
+</div>
+
+<script>
+var WORDS = {
+  "🐾 Животные":[
+    {word:"ant", emoji:"🐜",ru:"муравей",en:"ant",es:"hormiga",zh:"蚂蚁",hi:"चींटी",ar:"نملة",fr:"fourmi", ph:["æ","n","t"]},
+    {word:"bat", emoji:"🦇",ru:"летучая мышь",en:"bat",es:"murciélago",zh:"蝙蝠",hi:"चमगादड़",ar:"خفاشي",fr:"chauve-souris", ph:["b","æ","t"]},
+    {word:"bug", emoji:"🐞",ru:"жук",en:"bug",es:"insecto",zh:"虫",hi:"बग",ar:"حشرة",fr:"insecte", ph:["b","ʌ","g"]},
+    {word:"cat", emoji:"🐱",ru:"кошка",en:"cat",es:"gato",zh:"猫",hi:"बिल्ली",ar:"قطة",fr:"chat", ph:["k","æ","t"]},
+    {word:"cod", emoji:"🐟",ru:"треска",en:"cod",es:"bacalao",zh:"鳕鱼",hi:"कॉड",ar:"سمك القد",fr:"morue", ph:["k","ɒ","d"]},
+    {word:"cow", emoji:"🐄",ru:"корова",en:"cow",es:"vaca",zh:"牛",hi:"गाय",ar:"بقرة",fr:"vache", ph:["k","aʊ"]},
+    {word:"crab", emoji:"🦀",ru:"краб",en:"crab",es:"cangrejo",zh:"螃蟹",hi:"केकड़ा",ar:"سرطان البحر",fr:"crabe", ph:["k","r","æ","b"]},
+    {word:"crow", emoji:"🐦",ru:"ворона",en:"crow",es:"cuervo",zh:"乌鸦",hi:"कौआ",ar:"غراب",fr:"corbeau", ph:["k","r","əʊ"]},
+    {word:"cub", emoji:"🐻",ru:"медвежонок",en:"cub",es:"cachorro",zh:"幼崽",hi:"शावक",ar:"شبل",fr:"petit", ph:["k","ʌ","b"]},
+    {word:"dog", emoji:"🐶",ru:"собака",en:"dog",es:"perro",zh:"狗",hi:"कुत्ता",ar:"كلب",fr:"chien", ph:["d","ɒ","g"]},
+    {word:"duck", emoji:"🦆",ru:"утка",en:"duck",es:"pato",zh:"鸭子",hi:"बत्तख",ar:"بط",fr:"canard", ph:["d","ʌ","k"]},
+    {word:"elk", emoji:"🦌",ru:"лось",en:"moose",es:"alce",zh:"麋鹿",hi:"मूस",ar:"موس",fr:"orignal", ph:["e","l","k"]},
+    {word:"fin", emoji:"🐠",ru:"плавник",en:"fin",es:"aleta",zh:"鳍",hi:"पंख",ar:"زعنفة",fr:"nageoire", ph:["f","ɪ","n"]},
+    {word:"frog", emoji:"🐸",ru:"лягушка",en:"amphibian",es:"anfibio",zh:"两栖",hi:"उभयचर",ar:"البرمائيات",fr:"amphibien", ph:["f","r","ɒ","g"]},
+    {word:"fox", emoji:"🦊",ru:"лиса",en:"fox",es:"zorro",zh:"狐狸",hi:"लोमड़ी",ar:"ثعلب",fr:"renard", ph:["f","ɒ","ks"]},
+    {word:"hen", emoji:"🐔",ru:"курица",en:"hen",es:"gallina",zh:"母鸡",hi:"मुर्गी",ar:"دجاجة",fr:"poule", ph:["h","e","n"]},
+    {word:"hog", emoji:"🐗",ru:"кабан",en:"porcupine",es:"puercoespín",zh:"豪猪",hi:"साही",ar:"ستر",fr:"porc-épic", ph:["h","ɒ","g"]},
+    {word:"jay", emoji:"🐦",ru:"сойка",en:"jay",es:"arrendajo",zh:"松鸦",hi:"जय पक्षी",ar:"طائر أزرق",fr:"geai", ph:["dʒ","eɪ"]},
+    {word:"lamb", emoji:"🐑",ru:"ягнёнок",en:"lamb",es:"cordero",zh:"羔羊",hi:"मेमना",ar:"خروف صغير",fr:"agneau", ph:["l","æ","m"]},
+    {word:"lark", emoji:"🐤",ru:"жаворонок",en:"lark",es:"alondra",zh:"云雀",hi:"लर्क",ar:"قبرة",fr:"alouette", ph:["l","ɑː","k"]},
+    {word:"moth", emoji:"🦋",ru:"мотылёк",en:"moth",es:"polilla",zh:"蛾",hi:"पतंगा",ar:"عثة",fr:"papillon de nuit", ph:["m","ɒ","θ"]},
+    {word:"mink", emoji:"🦦",ru:"норка",en:"mink",es:"visón",zh:"水貂",hi:"मिंक",ar:"فرو القندس",fr:"vison", ph:["m","ɪ","ŋ","k"]},
+    {word:"newt", emoji:"🦎",ru:"тритон",en:"newt",es:"tritón",zh:"新手",hi:"न्यूट",ar:"ضفدع",fr:"triton", ph:["n","juː","t"]},
+    {word:"ox", emoji:"🐂",ru:"бык",en:"ox",es:"buey",zh:"公牛",hi:"बैल",ar:"ثور",fr:"boeuf", ph:["ɒ","ks"]},
+    {word:"pig", emoji:"🐷",ru:"свинья",en:"pig",es:"cerdo",zh:"猪",hi:"सुअर",ar:"خنزير",fr:"cochon", ph:["p","ɪ","g"]},
+    {word:"pup", emoji:"🐕",ru:"щенок",en:"pup",es:"cachorro",zh:"小狗",hi:"पिल्ला",ar:"جرو",fr:"chiot", ph:["p","ʌ","p"]},
+    {word:"ram", emoji:"🐏",ru:"баран",en:"ram",es:"carnero",zh:"公羊",hi:"भेड़",ar:"كبش",fr:"bélier", ph:["r","æ","m"]},
+    {word:"rat", emoji:"🐀",ru:"крыса",en:"rat",es:"rata",zh:"鼠",hi:"चूहा",ar:"فأر",fr:"rat", ph:["r","æ","t"]},
+    {word:"slug", emoji:"🐌",ru:"улитка",en:"snail",es:"caracol",zh:"蜗牛",hi:"घोंघा",ar:"حلزون",fr:"escargot", ph:["s","l","ʌ","g"]},
+    {word:"skunk", emoji:"🦨",ru:"скунс",en:"skunk",es:"zorrillo",zh:"臭鼬",hi:"स्कंक",ar:"ظربان",fr:"mouffette", ph:["s","k","ʌ","ŋ","k"]},
+    {word:"swan", emoji:"🦢",ru:"лебедь",en:"swan",es:"cisne",zh:"天鹅",hi:"हंस",ar:"البجعة",fr:"swan", ph:["s","w","ɒ","n"]},
+    {word:"wasp", emoji:"🐝",ru:"оса",en:"wasp",es:"avispa",zh:"黄蜂",hi:"ततैया",ar:"دبور",fr:"guêpe", ph:["w","ɒ","s","p"]},
+    {word:"wolf", emoji:"🐺",ru:"волк",en:"wolf",es:"lobo",zh:"狼",hi:"भेड़िया",ar:"ذئب",fr:"loup", ph:["w","ʊ","l","f"]},
+    {word:"worm", emoji:"🐛",ru:"червяк",en:"worm",es:"gusano",zh:"蠕虫",hi:"कीड़ा",ar:"ديدان",fr:"ver", ph:["w","ɜː","m"]},
+    {word:"yak", emoji:"🐃",ru:"як",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["j","æ","k"]},
+  ],
+  "🏠 Вещи":[
+    {word:"bag", emoji:"👜",ru:"сумка",en:"bag",es:"bolsa",zh:"袋子",hi:"बैग",ar:"حقيبة",fr:"sac", ph:["b","æ","g"]},
+    {word:"ball", emoji:"⚽",ru:"мяч",en:"ball",es:"pelota",zh:"球",hi:"गेंद",ar:"كرة",fr:"balle", ph:["b","ɔː","l"]},
+    {word:"bed", emoji:"🛏️",ru:"кровать",en:"bed",es:"cama",zh:"床",hi:"बिस्तर",ar:"سرير",fr:"lit", ph:["b","e","d"]},
+    {word:"bell", emoji:"🔔",ru:"колокол",en:"bell",es:"campana",zh:"铃",hi:"घंटी",ar:"جرس",fr:"cloche", ph:["b","e","l"]},
+    {word:"belt", emoji:"🥋",ru:"ремень",en:"belt",es:"cinturón",zh:"皮带",hi:"बेल्ट",ar:"حزام",fr:"ceinture", ph:["b","e","l","t"]},
+    {word:"bin", emoji:"🗑️",ru:"корзина",en:"basket",es:"cesta",zh:"篮子",hi:"टोकरी",ar:"سلة",fr:"panier", ph:["b","ɪ","n"]},
+    {word:"bolt", emoji:"🔩",ru:"болт",en:"bolt",es:"perno",zh:"螺栓",hi:"बोल्ट",ar:"برغي",fr:"boulon", ph:["b","əʊ","l","t"]},
+    {word:"box", emoji:"📦",ru:"коробка",en:"box",es:"caja",zh:"盒子",hi:"डिब्बा",ar:"صندوق",fr:"boîte", ph:["b","ɒ","ks"]},
+    {word:"bow", emoji:"🏹",ru:"лук",en:"bow",es:"arco",zh:"弓",hi:"धनुष",ar:"قوس",fr:"arc", ph:["b","əʊ"]},
+    {word:"bun", emoji:"🧁",ru:"булочка",en:"bun",es:"bollo",zh:"小圆面包",hi:"बन",ar:"كعكة",fr:"petit pain", ph:["b","ʌ","n"]},
+    {word:"bus", emoji:"🚌",ru:"автобус",en:"bus",es:"autobús",zh:"公交车",hi:"बस",ar:"حافلة",fr:"autobus", ph:["b","ʌ","s"]},
+    {word:"can", emoji:"🥫",ru:"банка",en:"can",es:"lata",zh:"罐头",hi:"डिब्बा",ar:"علبة",fr:"boîte de conserve", ph:["k","æ","n"]},
+    {word:"cap", emoji:"🧢",ru:"кепка",en:"cap",es:"gorra",zh:"帽子",hi:"टोपी",ar:"قبعة",fr:"casquette", ph:["k","æ","p"]},
+    {word:"car", emoji:"🚗",ru:"машина",en:"car",es:"coche",zh:"汽车",hi:"कार",ar:"سيارة",fr:"voiture", ph:["k","ɑː"]},
+    {word:"cart", emoji:"🛒",ru:"тележка",en:"cart",es:"carrito",zh:"手推车",hi:"गाड़ी",ar:"عربة",fr:"chariot", ph:["k","ɑː","t"]},
+    {word:"cot", emoji:"🛏️",ru:"кроватка",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["k","ɒ","t"]},
+    {word:"cup", emoji:"☕",ru:"чашка",en:"cup",es:"taza",zh:"杯子",hi:"कप",ar:"كوب",fr:"tasse", ph:["k","ʌ","p"]},
+    {word:"dart", emoji:"🎯",ru:"дротик",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["d","ɑː","t"]},
+    {word:"desk", emoji:"🗄️",ru:"стол",en:"desk",es:"escritorio",zh:"书桌",hi:"डेस्क",ar:"مكتب",fr:"bureau", ph:["d","e","s","k"]},
+    {word:"dish", emoji:"🍽️",ru:"блюдо",en:"dish",es:"plato",zh:"盘子",hi:"डिश",ar:"طبق",fr:"assiette", ph:["d","ɪ","ʃ"]},
+    {word:"drum", emoji:"🥁",ru:"барабан",en:"drum",es:"tambor",zh:"鼓",hi:"ड्रम",ar:"طبل",fr:"tambour", ph:["d","r","ʌ","m"]},
+    {word:"fan", emoji:"🌀",ru:"вентилятор",en:"fan",es:"ventilador",zh:"风扇",hi:"फैन",ar:"مروحة",fr:"ventilateur", ph:["f","æ","n"]},
+    {word:"flag", emoji:"🚩",ru:"флаг",en:"flag",es:"bandera",zh:"旗",hi:"झंडा",ar:"علم",fr:"drapeau", ph:["f","l","æ","g"]},
+    {word:"fork", emoji:"🍴",ru:"вилка",en:"fork",es:"tenedor",zh:"叉子",hi:"कांटा",ar:"شوكة",fr:"fourchette", ph:["f","ɔː","k"]},
+    {word:"gem", emoji:"💎",ru:"самоцвет",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["dʒ","e","m"]},
+    {word:"gift", emoji:"🎁",ru:"подарок",en:"gift",es:"regalo",zh:"礼物",hi:"उपहार",ar:"هدية",fr:"cadeau", ph:["g","ɪ","f","t"]},
+    {word:"hat", emoji:"🎩",ru:"шляпа",en:"hat",es:"sombrero",zh:"帽子",hi:"टोपी",ar:"قبعة",fr:"chapeau", ph:["h","æ","t"]},
+    {word:"horn", emoji:"📯",ru:"рожок",en:"horn",es:"cuerno",zh:"号角",hi:"सींग",ar:"قرن",fr:"cor", ph:["h","ɔː","n"]},
+    {word:"jar", emoji:"🏺",ru:"банка",en:"can",es:"lata",zh:"罐头",hi:"डिब्बा",ar:"علبة",fr:"boîte de conserve", ph:["dʒ","ɑː"]},
+    {word:"jug", emoji:"🏺",ru:"кувшин",en:"jug",es:"jarra",zh:"壶",hi:"घड़ा",ar:"إبريق",fr:"cruche", ph:["dʒ","ʌ","g"]},
+    {word:"keg", emoji:"🛢️",ru:"бочонок",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["k","e","g"]},
+    {word:"key", emoji:"🔑",ru:"ключ",en:"key",es:"llave",zh:"钥匙",hi:"चाबी",ar:"مفتاح",fr:"clé", ph:["k","iː"]},
+    {word:"kit", emoji:"🧰",ru:"набор",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["k","ɪ","t"]},
+    {word:"lamp", emoji:"💡",ru:"лампа",en:"lamp",es:"lámpara",zh:"灯",hi:"लैंप",ar:"مصباح",fr:"lampe", ph:["l","æ","m","p"]},
+    {word:"lock", emoji:"🔒",ru:"замок",en:"lock",es:"cerradura",zh:"锁",hi:"ताला",ar:"قفل",fr:"serrure", ph:["l","ɒ","k"]},
+    {word:"log", emoji:"🌲",ru:"бревно",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["l","ɒ","g"]},
+    {word:"map", emoji:"🗺️",ru:"карта",en:"map",es:"mapa",zh:"地图",hi:"नक्शा",ar:"خريطة",fr:"carte", ph:["m","æ","p"]},
+    {word:"mask", emoji:"🎭",ru:"маска",en:"mask",es:"máscara",zh:"面具",hi:"मुखौटा",ar:"قناع",fr:"masque", ph:["m","ɑː","s","k"]},
+    {word:"mat", emoji:"🧶",ru:"коврик",en:"mat",es:"tapete",zh:"垫子",hi:"चटाई",ar:"حصيرة",fr:"tapis", ph:["m","æ","t"]},
+    {word:"mug", emoji:"☕",ru:"кружка",en:"mug",es:"taza",zh:"马克杯",hi:"मग",ar:"كوب",fr:"tasse", ph:["m","ʌ","g"]},
+    {word:"nail", emoji:"🔨",ru:"гвоздь",en:"nail",es:"clavo",zh:"钉子",hi:"कील",ar:"مسمار",fr:"clou", ph:["n","eɪ","l"]},
+    {word:"net", emoji:"🥅",ru:"сетка",en:"net",es:"red",zh:"网",hi:"जाल",ar:"شبكة",fr:"filet", ph:["n","e","t"]},
+    {word:"oar", emoji:"🚣",ru:"весло",en:"oar",es:"remo",zh:"桨",hi:"पैडल",ar:"مجداف",fr:"aviron", ph:["ɔː"]},
+    {word:"pan", emoji:"🍳",ru:"кастрюля",en:"pan",es:"sartén",zh:"锅",hi:"कड़ाही",ar:"قدر",fr:"poêle", ph:["p","æ","n"]},
+    {word:"pen", emoji:"🖊️",ru:"ручка",en:"pen",es:"bolígrafo",zh:"笔",hi:"कलम",ar:"قلم",fr:"stylo", ph:["p","e","n"]},
+    {word:"pin", emoji:"📌",ru:"булавка",en:"pin",es:"alfiler",zh:"针",hi:"पिन",ar:"دبوس",fr:"épingle", ph:["p","ɪ","n"]},
+    {word:"pot", emoji:"🍲",ru:"горшок",en:"pot",es:"maceta",zh:"锅",hi:"बर्तन",ar:"إناء",fr:"pot", ph:["p","ɒ","t"]},
+    {word:"rack", emoji:"🧺",ru:"стойка",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["r","æ","k"]},
+    {word:"ring", emoji:"💍",ru:"кольцо",en:"ring",es:"anillo",zh:"戒指",hi:"अंगूठी",ar:"خاتم",fr:"anneau", ph:["r","ɪ","ŋ"]},
+    {word:"rod", emoji:"🎣",ru:"удочка",en:"rod",es:"caña",zh:"鱼竿",hi:"डंडा",ar:"قصبة",fr:"baguette", ph:["r","ɒ","d"]},
+    {word:"rug", emoji:"🧶",ru:"коврик",en:"mat",es:"tapete",zh:"垫子",hi:"चटाई",ar:"حصيرة",fr:"tapis", ph:["r","ʌ","g"]},
+    {word:"sack", emoji:"👝",ru:"мешок",en:"sack",es:"saco",zh:"麻袋",hi:"बोरा",ar:"كيس",fr:"sac", ph:["s","æ","k"]},
+    {word:"sail", emoji:"⛵",ru:"парус",en:"sail",es:"vela",zh:"帆",hi:"पाल",ar:"شراع",fr:"voile", ph:["s","eɪ","l"]},
+    {word:"saw", emoji:"🔨",ru:"пила",en:"saw",es:"sierra",zh:"锯",hi:"आरी",ar:"منشار",fr:"scie", ph:["s","ɔː"]},
+    {word:"sock", emoji:"🧦",ru:"носок",en:"sock",es:"calcetín",zh:"袜子",hi:"मोज़ा",ar:"جورب",fr:"chaussette", ph:["s","ɒ","k"]},
+    {word:"stamp", emoji:"📮",ru:"штамп",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","t","æ","m","p"]},
+    {word:"stand", emoji:"📍",ru:"стойка",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","t","æ","n","d"]},
+    {word:"strap", emoji:"🎒",ru:"ремешок",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","t","r","æ","p"]},
+    {word:"tent", emoji:"⛺",ru:"палатка",en:"tent",es:"tienda",zh:"帐篷",hi:"तंबू",ar:"خيمة",fr:"tente", ph:["t","e","n","t"]},
+    {word:"tin", emoji:"🥫",ru:"жестянка",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["t","ɪ","n"]},
+    {word:"top", emoji:"🔝",ru:"волчок",en:"top",es:"trompo",zh:"陀螺",hi:"लट्टू",ar:"لعبة الغزل",fr:"toupie", ph:["t","ɒ","p"]},
+    {word:"tub", emoji:"🛁",ru:"ванна",en:"tub",es:"bañera",zh:"浴缸",hi:"टब",ar:"حوض",fr:"baignoire", ph:["t","ʌ","b"]},
+    {word:"urn", emoji:"🏺",ru:"урна",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["ɜː","n"]},
+    {word:"van", emoji:"🚐",ru:"фургон",en:"van",es:"furgoneta",zh:"货车",hi:"वैन",ar:"شاحنة صغيرة",fr:"fourgonnette", ph:["v","æ","n"]},
+    {word:"vest", emoji:"🧥",ru:"жилет",en:"vest",es:"chaleco",zh:"背心",hi:"बनियान",ar:"صدرية",fr:"gilet", ph:["v","e","s","t"]},
+    {word:"wick", emoji:"🕯️",ru:"фитиль",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["w","ɪ","k"]},
+    {word:"wig", emoji:"👒",ru:"парик",en:"wig",es:"peluca",zh:"假发",hi:"विग",ar:"شعر مستعار",fr:"perruque", ph:["w","ɪ","g"]},
+    {word:"zip", emoji:"🤐",ru:"молния",en:"lightning",es:"relámpago",zh:"闪电",hi:"बिजली",ar:"برق",fr:"éclair", ph:["z","ɪ","p"]},
+  ],
+  "🌿 Природа":[
+    {word:"ash", emoji:"🌿",ru:"пепел/ясень",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["æ","ʃ"]},
+    {word:"bay", emoji:"🌊",ru:"залив",en:"bay",es:"bahía",zh:"海湾",hi:"खाड़ी",ar:"خليج",fr:"baie", ph:["b","eɪ"]},
+    {word:"bog", emoji:"🌾",ru:"болото",en:"bog",es:"pantano",zh:"沼泽",hi:"दलदल",ar:"مستنقع",fr:"marais", ph:["b","ɒ","g"]},
+    {word:"bud", emoji:"🌱",ru:"почка",en:"bud",es:"brote",zh:"芽",hi:"कली",ar:"براعم",fr:"bourgeon", ph:["b","ʌ","d"]},
+    {word:"cliff", emoji:"⛰️",ru:"скала",en:"cliff",es:"acantilado",zh:"悬崖",hi:"चट्टान",ar:"منحدر",fr:"falaise", ph:["k","l","ɪ","f"]},
+    {word:"den", emoji:"🌲",ru:"логово",en:"den",es:"guarida",zh:"巢穴",hi:"मांद",ar:"عرين",fr:"repaire", ph:["d","e","n"]},
+    {word:"dew", emoji:"💧",ru:"роса",en:"dew",es:"rocío",zh:"露",hi:"ओस",ar:"ندى",fr:"rosée", ph:["d","juː"]},
+    {word:"dust", emoji:"💨",ru:"пыль",en:"dust",es:"polvo",zh:"灰尘",hi:"धूल",ar:"غبار",fr:"poussière", ph:["d","ʌ","s","t"]},
+    {word:"drift", emoji:"🌬️",ru:"дрейф",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["d","r","ɪ","f","t"]},
+    {word:"fern", emoji:"🌿",ru:"папоротник",en:"fern",es:"helecho",zh:"蕨",hi:"फर्न",ar:"سرخس",fr:"fougère", ph:["f","ɜː","n"]},
+    {word:"fog", emoji:"🌫️",ru:"туман",en:"fog",es:"niebla",zh:"雾",hi:"कोहरा",ar:"ضباب",fr:"brouillard", ph:["f","ɒ","g"]},
+    {word:"frost", emoji:"❄️",ru:"мороз",en:"frost",es:"escarcha",zh:"霜",hi:"पाला",ar:"صقيع",fr:"givre", ph:["f","r","ɒ","s","t"]},
+    {word:"glen", emoji:"🏔️",ru:"лощина",en:"glen",es:"cañada",zh:"山谷",hi:"घाटी",ar:"وادي",fr:"vallée", ph:["g","l","e","n"]},
+    {word:"hail", emoji:"🌨️",ru:"град",en:"hail",es:"granizo",zh:"冰雹",hi:"ओलावृष्टि",ar:"برد",fr:"grêle", ph:["h","eɪ","l"]},
+    {word:"hill", emoji:"⛰️",ru:"холм",en:"hill",es:"colina",zh:"山丘",hi:"पहाड़ी",ar:"تل",fr:"colline", ph:["h","ɪ","l"]},
+    {word:"ivy", emoji:"🌿",ru:"плющ",en:"ivy",es:"hiedra",zh:"常春藤",hi:"आइवी",ar:"اللبلاب",fr:"lierre", ph:["aɪ","v","ɪ"]},
+    {word:"mist", emoji:"🌁",ru:"дымка",en:"haze",es:"bruma",zh:"薄雾",hi:"कोहासा",ar:"ضباب خفيف",fr:"brume", ph:["m","ɪ","s","t"]},
+    {word:"moss", emoji:"🌿",ru:"мох",en:"moss",es:"musgo",zh:"苔藓",hi:"काई",ar:"طحالب",fr:"mousse", ph:["m","ɒ","s"]},
+    {word:"mud", emoji:"🌧️",ru:"грязь",en:"mud",es:"lodo",zh:"泥",hi:"कीचड़",ar:"طين",fr:"boue", ph:["m","ʌ","d"]},
+    {word:"opal", emoji:"💎",ru:"опал",en:"opal",es:"ópalo",zh:"蛋白石",hi:"ओपल",ar:"عقيق",fr:"opale", ph:["əʊ","p","ə","l"]},
+    {word:"orb", emoji:"🌐",ru:"шар",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["ɔː","b"]},
+    {word:"pit", emoji:"🕳️",ru:"яма",en:"pit",es:"hoyo",zh:"坑",hi:"गड्ढा",ar:"حفرة",fr:"fosse", ph:["p","ɪ","t"]},
+    {word:"pool", emoji:"💧",ru:"лужа",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["p","uː","l"]},
+    {word:"pond", emoji:"🏞️",ru:"пруд",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["p","ɒ","n","d"]},
+    {word:"plant", emoji:"🌱",ru:"растение",en:"plant",es:"planta",zh:"植物",hi:"पौधा",ar:"نبات",fr:"planter", ph:["p","l","æ","n","t"]},
+    {word:"rock", emoji:"⛰️",ru:"камень",en:"rock",es:"roca",zh:"岩石",hi:"पत्थर",ar:"صخرة",fr:"rocher", ph:["r","ɒ","k"]},
+    {word:"sand", emoji:"🏖️",ru:"песок",en:"sand",es:"arena",zh:"沙",hi:"रेत",ar:"رمل",fr:"sable", ph:["s","æ","n","d"]},
+    {word:"seed", emoji:"🌱",ru:"семя",en:"seed",es:"semilla",zh:"种子",hi:"बीज",ar:"بذرة",fr:"graine", ph:["s","iː","d"]},
+    {word:"snow", emoji:"❄️",ru:"снег",en:"snow",es:"nieve",zh:"雪",hi:"बर्फ",ar:"ثلج",fr:"neige", ph:["s","n","əʊ"]},
+    {word:"soil", emoji:"🌍",ru:"почва",en:"soil",es:"suelo",zh:"土壤",hi:"मिट्टी",ar:"التربة",fr:"sol", ph:["s","ɔɪ","l"]},
+    {word:"star", emoji:"⭐",ru:"звезда",en:"star",es:"estrella",zh:"星",hi:"तारा",ar:"نجم",fr:"étoile", ph:["s","t","ɑː"]},
+    {word:"stem", emoji:"🌿",ru:"стебель",en:"stem",es:"tallo",zh:"茎",hi:"तना",ar:"ساق",fr:"tige", ph:["s","t","e","m"]},
+    {word:"sun", emoji:"☀️",ru:"солнце",en:"sun",es:"sol",zh:"太阳",hi:"सूरज",ar:"شمس",fr:"soleil", ph:["s","ʌ","n"]},
+    {word:"tide", emoji:"🌊",ru:"прилив",en:"tide",es:"marea",zh:"潮汐",hi:"ज्वार",ar:"المد والجزر",fr:"marée", ph:["t","aɪ","d"]},
+    {word:"web", emoji:"🕸️",ru:"паутина",en:"web",es:"telaraña",zh:"蜘蛛网",hi:"जाला",ar:"شبكة عنكبوتية",fr:"toile", ph:["w","e","b"]},
+    {word:"weed", emoji:"🌿",ru:"сорняк",en:"weed",es:"maleza",zh:"杂草",hi:"खरपतवार",ar:"عشب",fr:"mauvaise herbe", ph:["w","iː","d"]},
+    {word:"wind", emoji:"💨",ru:"ветер",en:"wind",es:"viento",zh:"风",hi:"हवा",ar:"ريح",fr:"vent", ph:["w","ɪ","n","d"]},
+    {word:"wood", emoji:"🌲",ru:"лес",en:"wood",es:"bosque",zh:"森林",hi:"जंगल",ar:"غابة",fr:"bois", ph:["w","ʊ","d"]},
+  ],
+  "💪 Тело":[
+    {word:"arm", emoji:"💪",ru:"рука",en:"arm",es:"brazo",zh:"手臂",hi:"बाहु",ar:"ذراع",fr:"bras", ph:["ɑː","m"]},
+    {word:"back", emoji:"🧍",ru:"спина",en:"back",es:"espalda",zh:"背",hi:"पीठ",ar:"الظهر",fr:"dos", ph:["b","æ","k"]},
+    {word:"brow", emoji:"😮",ru:"бровь",en:"brow",es:"ceja",zh:"眉",hi:"भौंह",ar:"حاجب",fr:"sourcil", ph:["b","r","aʊ"]},
+    {word:"calf", emoji:"🦵",ru:"икра",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["k","ɑː","f"]},
+    {word:"chin", emoji:"😶",ru:"подбородок",en:"chin",es:"barbilla",zh:"下巴",hi:"ठुड्डी",ar:"ذقن",fr:"menton", ph:["tʃ","ɪ","n"]},
+    {word:"ear", emoji:"👂",ru:"ухо",en:"ear",es:"oreja",zh:"耳朵",hi:"कान",ar:"أذن",fr:"oreille", ph:["ɪ","ə"]},
+    {word:"elbow", emoji:"💪",ru:"локоть",en:"elbow",es:"codo",zh:"肘",hi:"कोहनी",ar:"كوع",fr:"coude", ph:["e","l","b","əʊ"]},
+    {word:"fist", emoji:"✊",ru:"кулак",en:"fist",es:"puño",zh:"拳",hi:"मुट्ठी",ar:"قبضة",fr:"poing", ph:["f","ɪ","s","t"]},
+    {word:"foot", emoji:"🦶",ru:"ступня",en:"foot",es:"pie",zh:"脚",hi:"पांव",ar:"قدم",fr:"pied", ph:["f","ʊ","t"]},
+    {word:"gum", emoji:"🦷",ru:"десна",en:"gum",es:"encía",zh:"牙龈",hi:"मसूड़ा",ar:"لثة",fr:"gencive", ph:["g","ʌ","m"]},
+    {word:"gut", emoji:"🍔",ru:"живот",en:"gut",es:"tripa",zh:"肠",hi:"आंत",ar:"معدة",fr:"intestin", ph:["g","ʌ","t"]},
+    {word:"hand", emoji:"🤚",ru:"рука",en:"arm",es:"brazo",zh:"手臂",hi:"बाहु",ar:"ذراع",fr:"bras", ph:["h","æ","n","d"]},
+    {word:"head", emoji:"🗣️",ru:"голова",en:"head",es:"cabeza",zh:"头",hi:"सिर",ar:"رأس",fr:"tête", ph:["h","e","d"]},
+    {word:"heel", emoji:"🦶",ru:"пятка",en:"heel",es:"talón",zh:"脚跟",hi:"एड़ी",ar:"كعب",fr:"talon", ph:["h","iː","l"]},
+    {word:"hip", emoji:"🕺",ru:"бедро",en:"hip",es:"cadera",zh:"髋",hi:"कूल्हा",ar:"الورك",fr:"hanche", ph:["h","ɪ","p"]},
+    {word:"jaw", emoji:"😬",ru:"челюсть",en:"jaw",es:"mandíbula",zh:"下颌",hi:"जबड़ा",ar:"فك",fr:"mâchoire", ph:["dʒ","ɔː"]},
+    {word:"leg", emoji:"🦵",ru:"нога",en:"leg",es:"pierna",zh:"腿",hi:"पैर",ar:"ساق",fr:"jambe", ph:["l","e","g"]},
+    {word:"lip", emoji:"👄",ru:"губа",en:"lip",es:"labio",zh:"嘴唇",hi:"होंठ",ar:"شفة",fr:"lèvre", ph:["l","ɪ","p"]},
+    {word:"lung", emoji:"💨",ru:"лёгкое",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["l","ʌ","ŋ"]},
+    {word:"neck", emoji:"🧣",ru:"шея",en:"neck",es:"cuello",zh:"脖子",hi:"गर्दन",ar:"رقبة",fr:"cou", ph:["n","e","k"]},
+    {word:"rib", emoji:"🦴",ru:"ребро",en:"rib",es:"costilla",zh:"肋骨",hi:"पसली",ar:"ضلع",fr:"côte", ph:["r","ɪ","b"]},
+    {word:"scalp", emoji:"💆",ru:"кожа головы",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","k","æ","l","p"]},
+    {word:"shin", emoji:"🦵",ru:"голень",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["ʃ","ɪ","n"]},
+    {word:"skin", emoji:"🖐️",ru:"кожа",en:"skin",es:"piel",zh:"皮肤",hi:"त्वचा",ar:"جلد",fr:"peau", ph:["s","k","ɪ","n"]},
+    {word:"skull", emoji:"💀",ru:"череп",en:"skull",es:"cráneo",zh:"头骨",hi:"खोपड़ी",ar:"جمجمة",fr:"crâne", ph:["s","k","ʌ","l"]},
+    {word:"thumb", emoji:"👍",ru:"большой палец",en:"thumb",es:"pulgar",zh:"大拇指",hi:"अंगूठा",ar:"إبهام",fr:"pouce", ph:["θ","ʌ","m"]},
+    {word:"vein", emoji:"💉",ru:"вена",en:"vein",es:"vena",zh:"静脉",hi:"नस",ar:"وريد",fr:"veine", ph:["v","eɪ","n"]},
+    {word:"wrist", emoji:"⌚",ru:"запястье",en:"wrist",es:"muñeca",zh:"腕",hi:"कलाई",ar:"معصم",fr:"poignet", ph:["r","ɪ","s","t"]},
+    {word:"gland", emoji:"🧬",ru:"железа",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["g","l","æ","n","d"]},
+  ],
+  "🍎 Еда":[
+    {word:"bun", emoji:"🥐",ru:"булочка",en:"bun",es:"bollo",zh:"小圆面包",hi:"बन",ar:"كعكة",fr:"petit pain", ph:["b","ʌ","n"]},
+    {word:"corn", emoji:"🌽",ru:"кукуруза",en:"corn",es:"maíz",zh:"玉米",hi:"मकई",ar:"ذرة",fr:"maïs", ph:["k","ɔː","n"]},
+    {word:"crab", emoji:"🦀",ru:"краб (еда)",en:"crab meat",es:"carne de cangrejo",zh:"螃蟹",hi:"केकड़े का मांस",ar:"لحم السرطان",fr:"chair de crabe", ph:["k","r","æ","b"]},
+    {word:"dill", emoji:"🌿",ru:"укроп",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["d","ɪ","l"]},
+    {word:"egg", emoji:"🥚",ru:"яйцо",en:"egg",es:"huevo",zh:"鸡蛋",hi:"अंडा",ar:"بيضة",fr:"oeuf", ph:["e","g"]},
+    {word:"fig", emoji:"🍇",ru:"инжир",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["f","ɪ","g"]},
+    {word:"ham", emoji:"🥩",ru:"ветчина",en:"ham",es:"jamón",zh:"火腿",hi:"हैम",ar:"لحم الخنزير المقدد",fr:"jambon", ph:["h","æ","m"]},
+    {word:"grits", emoji:"🥣",ru:"крупа",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["g","r","ɪ","t","s"]},
+    {word:"jam", emoji:"🍓",ru:"джем",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["dʒ","æ","m"]},
+    {word:"leek", emoji:"🧅",ru:"лук-порей",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["l","iː","k"]},
+    {word:"milk", emoji:"🥛",ru:"молоко",en:"milk",es:"leche",zh:"牛奶",hi:"दूध",ar:"حليب",fr:"lait", ph:["m","ɪ","l","k"]},
+    {word:"mint", emoji:"🌿",ru:"мята",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["m","ɪ","n","t"]},
+    {word:"nut", emoji:"🥜",ru:"орех",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["n","ʌ","t"]},
+    {word:"oat", emoji:"🌾",ru:"овёс",en:"oats",es:"avena",zh:"燕麦",hi:"जई",ar:"الشوفان",fr:"avoine", ph:["əʊ","t"]},
+    {word:"oil", emoji:"🛢️",ru:"масло",en:"butter",es:"mantequilla",zh:"黄油",hi:"मक्खन",ar:"زبدة",fr:"beurre", ph:["ɔɪ","l"]},
+    {word:"pea", emoji:"🥦",ru:"горох",en:"pea",es:"guisante",zh:"豌豆",hi:"मटर",ar:"بازلاء",fr:"petit pois", ph:["p","iː"]},
+    {word:"pear", emoji:"🍐",ru:"груша",en:"pear",es:"pera",zh:"梨",hi:"नाशपाती",ar:"كمثرى",fr:"poire", ph:["p","eə"]},
+    {word:"plum", emoji:"🍑",ru:"слива",en:"plum",es:"ciruela",zh:"梅子",hi:"आलूबुखारा",ar:"برقوق",fr:"prune", ph:["p","l","ʌ","m"]},
+    {word:"pasta", emoji:"🍝",ru:"паста",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["p","æ","s","t","ə"]},
+    {word:"roll", emoji:"🥐",ru:"рулет",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["r","əʊ","l"]},
+    {word:"salt", emoji:"🧂",ru:"соль",en:"salt",es:"sal",zh:"盐",hi:"नमक",ar:"ملح",fr:"sel", ph:["s","ɔː","l","t"]},
+    {word:"soup", emoji:"🍲",ru:"суп",en:"soup",es:"sopa",zh:"汤",hi:"सूप",ar:"حساء",fr:"soupe", ph:["s","uː","p"]},
+    {word:"tart", emoji:"🥧",ru:"пирог",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["t","ɑː","t"]},
+    {word:"salad", emoji:"🥗",ru:"салат",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","æ","l","ə","d"]},
+    {word:"crust", emoji:"🍞",ru:"корка",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["k","r","ʌ","s","t"]},
+    {word:"veal", emoji:"🥩",ru:"телятина",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["v","iː","l"]},
+    {word:"yam", emoji:"🍠",ru:"ямс",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["j","æ","m"]},
+  ],
+  "🔤 Словарь 3-4":[
+    {word:"cab", emoji:"🚕",ru:"такси",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["k","æ","b"]},
+    {word:"dab", emoji:"🖌️",ru:"мазок",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["d","æ","b"]},
+    {word:"fad", emoji:"📈",ru:"мода",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["f","æ","d"]},
+    {word:"gap", emoji:"🕳️",ru:"пробел",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["g","æ","p"]},
+    {word:"gas", emoji:"⛽",ru:"газ",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["g","æ","s"]},
+    {word:"jab", emoji:"🥊",ru:"удар",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["ʤ","æ","b"]},
+    {word:"lag", emoji:"🐢",ru:"задержка",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["l","æ","g"]},
+    {word:"mad", emoji:"😠",ru:"злой",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["m","æ","d"]},
+    {word:"pad", emoji:"🗒️",ru:"блокнот",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["p","æ","d"]},
+    {word:"rag", emoji:"🧻",ru:"тряпка",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["r","æ","g"]},
+    {word:"sad", emoji:"😢",ru:"грустный",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","æ","d"]},
+    {word:"tag", emoji:"🏷️",ru:"ярлык",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["t","æ","g"]},
+    {word:"vat", emoji:"🛢️",ru:"чан",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["v","æ","t"]},
+    {word:"wax", emoji:"🕯️",ru:"воск",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["w","æ","x"]},
+    {word:"yap", emoji:"🗣️",ru:"болтовня",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["j","æ","p"]},
+    {word:"zag", emoji:"↯",ru:"зиг",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["z","æ","g"]},
+    {word:"beg", emoji:"🙏",ru:"просить",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["b","e","g"]},
+    {word:"bet", emoji:"🎲",ru:"ставка",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["b","e","t"]},
+    {word:"fed", emoji:"🍽️",ru:"сытый",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["f","e","d"]},
+    {word:"hem", emoji:"🧵",ru:"подгиб",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["h","e","m"]},
+    {word:"jet", emoji:"✈️",ru:"реактивный самолёт",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["ʤ","e","t"]},
+    {word:"men", emoji:"👨",ru:"мужчины",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["m","e","n"]},
+    {word:"met", emoji:"🤝",ru:"встретил",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["m","e","t"]},
+    {word:"peg", emoji:"📌",ru:"колышек",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["p","e","g"]},
+    {word:"pet", emoji:"🐾",ru:"питомец",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["p","e","t"]},
+    {word:"red", emoji:"🟥",ru:"красный",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["r","e","d"]},
+    {word:"ten", emoji:"🔟",ru:"десять",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["t","e","n"]},
+    {word:"vet", emoji:"🐶",ru:"ветеринар",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["v","e","t"]},
+    {word:"wed", emoji:"💍",ru:"жениться",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["w","e","d"]},
+    {word:"bid", emoji:"🏷️",ru:"ставка (торги)",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["b","ɪ","d"]},
+    {word:"dig", emoji:"⛏️",ru:"копать",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["d","ɪ","g"]},
+    {word:"dim", emoji:"🔅",ru:"тусклый",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["d","ɪ","m"]},
+    {word:"dip", emoji:"🥣",ru:"макать",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["d","ɪ","p"]},
+    {word:"gig", emoji:"🎸",ru:"концерт",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["g","ɪ","g"]},
+    {word:"him", emoji:"👨",ru:"его",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["h","ɪ","m"]},
+    {word:"jig", emoji:"🧩",ru:"приспособление",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["ʤ","ɪ","g"]},
+    {word:"lid", emoji:"🥫",ru:"крышка",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["l","ɪ","d"]},
+    {word:"mid", emoji:"↔️",ru:"середина",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["m","ɪ","d"]},
+    {word:"nib", emoji:"🖋️",ru:"перо",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["n","ɪ","b"]},
+    {word:"bob", emoji:"🧑",ru:"боб",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["b","ɒ","b"]},
+    {word:"cob", emoji:"🌽",ru:"початок",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["k","ɒ","b"]},
+    {word:"cog", emoji:"⚙️",ru:"шестерня",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["k","ɒ","g"]},
+    {word:"dot", emoji:"•",ru:"точка",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["d","ɒ","t"]},
+    {word:"jog", emoji:"🏃",ru:"бег трусцой",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["ʤ","ɒ","g"]},
+    {word:"lot", emoji:"🧺",ru:"много",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["l","ɒ","t"]},
+    {word:"mob", emoji:"👥",ru:"толпа",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["m","ɒ","b"]},
+    {word:"mop", emoji:"🧹",ru:"швабра",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["m","ɒ","p"]},
+    {word:"nod", emoji:"🙂",ru:"кивок",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["n","ɒ","d"]},
+    {word:"not", emoji:"🚫",ru:"не",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["n","ɒ","t"]},
+    {word:"pod", emoji:"🌱",ru:"стручок",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["p","ɒ","d"]},
+    {word:"pop", emoji:"🍭",ru:"поп",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["p","ɒ","p"]},
+    {word:"rob", emoji:"🕶️",ru:"грабить",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["r","ɒ","b"]},
+    {word:"rot", emoji:"🍂",ru:"гниль",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["r","ɒ","t"]},
+    {word:"sob", emoji:"😭",ru:"рыдать",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","ɒ","b"]},
+    {word:"dub", emoji:"🎬",ru:"дубляж",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["d","ʌ","b"]},
+    {word:"dug", emoji:"⛏️",ru:"копал",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["d","ʌ","g"]},
+    {word:"dun", emoji:"🎨",ru:"коричневый",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["d","ʌ","n"]},
+    {word:"fun", emoji:"🎉",ru:"веселье",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["f","ʌ","n"]},
+    {word:"hug", emoji:"🤗",ru:"объятие",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["h","ʌ","g"]},
+    {word:"hut", emoji:"🛖",ru:"хижина",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["h","ʌ","t"]},
+    {word:"pub", emoji:"🍺",ru:"паб",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["p","ʌ","b"]},
+    {word:"rut", emoji:"🛞",ru:"колея",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["r","ʌ","t"]},
+    {word:"band", emoji:"🎵",ru:"группа",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["b","æ","n","d"]},
+    {word:"bank", emoji:"🏦",ru:"банк",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["b","æ","n","k"]},
+    {word:"bend", emoji:"↩️",ru:"сгиб",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["b","e","n","d"]},
+    {word:"best", emoji:"🏆",ru:"лучший",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["b","e","s","t"]},
+    {word:"bulk", emoji:"📦",ru:"объём",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["b","ʌ","l","k"]},
+    {word:"bump", emoji:"💥",ru:"удар",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["b","ʌ","m","p"]},
+    {word:"bunk", emoji:"🛏️",ru:"койка",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["b","ʌ","n","k"]},
+    {word:"camp", emoji:"🏕️",ru:"лагерь",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["k","æ","m","p"]},
+    {word:"cast", emoji:"🎭",ru:"бросок/состав",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["k","æ","s","t"]},
+    {word:"damp", emoji:"💧",ru:"сырой",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["d","æ","m","p"]},
+    {word:"dent", emoji:"🔩",ru:"вмятина",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["d","e","n","t"]},
+    {word:"disk", emoji:"💿",ru:"диск",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["d","ɪ","s","k"]},
+    {word:"fast", emoji:"⚡",ru:"быстрый",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["f","æ","s","t"]},
+    {word:"film", emoji:"🎞️",ru:"фильм",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["f","ɪ","l","m"]},
+    {word:"flat", emoji:"🏠",ru:"квартира",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["f","l","æ","t"]},
+    {word:"fond", emoji:"😊",ru:"любящий",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["f","ɒ","n","d"]},
+    {word:"fund", emoji:"💰",ru:"фонд",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["f","ʌ","n","d"]},
+    {word:"gasp", emoji:"😮",ru:"вздох",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["g","æ","s","p"]},
+    {word:"golf", emoji:"⛳",ru:"гольф",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["g","ɒ","l","f"]},
+    {word:"husk", emoji:"🌽",ru:"шелуха",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["h","ʌ","s","k"]},
+    {word:"jump", emoji:"🦘",ru:"прыжок",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["ʤ","ʌ","m","p"]},
+    {word:"kept", emoji:"📦",ru:"хранил",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["k","e","p","t"]},
+    {word:"land", emoji:"🌍",ru:"земля",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["l","æ","n","d"]},
+    {word:"left", emoji:"⬅️",ru:"лево",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["l","e","f","t"]},
+    {word:"lend", emoji:"🤲",ru:"одолжить",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["l","e","n","d"]},
+    {word:"lift", emoji:"🏋️",ru:"подъём",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["l","ɪ","f","t"]},
+    {word:"list", emoji:"📋",ru:"список",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["l","ɪ","s","t"]},
+    {word:"mast", emoji:"⛵",ru:"мачта",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["m","æ","s","t"]},
+    {word:"melt", emoji:"💧",ru:"таять",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["m","e","l","t"]},
+    {word:"mend", emoji:"🧵",ru:"чинить",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["m","e","n","d"]},
+    {word:"must", emoji:"❗",ru:"должен",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["m","ʌ","s","t"]},
+    {word:"nest", emoji:"🐦",ru:"гнездо",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["n","e","s","t"]},
+    {word:"pump", emoji:"⛽",ru:"насос",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["p","ʌ","m","p"]},
+    {word:"rest", emoji:"🛌",ru:"отдых",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["r","e","s","t"]},
+    {word:"risk", emoji:"⚠️",ru:"риск",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["r","ɪ","s","k"]},
+    {word:"silk", emoji:"🧵",ru:"шёлк",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","ɪ","l","k"]},
+    {word:"slab", emoji:"🧱",ru:"плита",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","l","æ","b"]},
+    {word:"slam", emoji:"🚪",ru:"хлопок",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","l","æ","m"]},
+    {word:"slap", emoji:"✋",ru:"шлепок",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","l","æ","p"]},
+    {word:"slim", emoji:"🧍",ru:"стройный",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","l","ɪ","m"]},
+    {word:"slot", emoji:"🎰",ru:"слот",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","l","ɒ","t"]},
+    {word:"smog", emoji:"🏭",ru:"смог",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","m","ɒ","g"]},
+    {word:"snag", emoji:"📎",ru:"зацепка",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","n","æ","g"]},
+    {word:"snap", emoji:"📸",ru:"щелчок",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","n","æ","p"]},
+    {word:"snip", emoji:"✂️",ru:"отрез",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","n","ɪ","p"]},
+    {word:"soft", emoji:"🧸",ru:"мягкий",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","ɒ","f","t"]},
+    {word:"span", emoji:"📏",ru:"пролёт",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","p","æ","n"]},
+    {word:"spin", emoji:"🌀",ru:"вращение",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","p","ɪ","n"]},
+    {word:"spot", emoji:"📍",ru:"место",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","p","ɒ","t"]},
+    {word:"step", emoji:"👣",ru:"шаг",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","t","e","p"]},
+    {word:"stub", emoji:"🧾",ru:"квиток",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","t","ʌ","b"]},
+    {word:"tank", emoji:"🛢️",ru:"бак",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["t","æ","n","k"]},
+    {word:"test", emoji:"🧪",ru:"тест",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["t","e","s","t"]},
+    {word:"tint", emoji:"🎨",ru:"оттенок",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["t","ɪ","n","t"]},
+    {word:"vast", emoji:"🌌",ru:"огромный",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["v","æ","s","t"]},
+    {word:"vent", emoji:"🌀",ru:"вентиляция",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["v","e","n","t"]},
+    {word:"well", emoji:"🕳️",ru:"колодец",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["w","e","l","l"]},
+    {word:"west", emoji:"🧭",ru:"запад",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["w","e","s","t"]},
+  ],
+  "✋ Словарь 5":[
+    {word:"cabin", emoji:"🏕️",ru:"хижина",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["k","æ","b","ɪ","n"]},
+    {word:"habit", emoji:"🔁",ru:"привычка",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["h","æ","b","ɪ","t"]},
+    {word:"rapid", emoji:"⚡",ru:"быстрый",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["r","æ","p","ɪ","d"]},
+    {word:"valid", emoji:"✅",ru:"верный",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["v","æ","l","ɪ","d"]},
+    {word:"vivid", emoji:"🎨",ru:"яркий",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["v","ɪ","v","ɪ","d"]},
+    {word:"topic", emoji:"🗂️",ru:"тема",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["t","ɒ","p","ɪ","k"]},
+    {word:"sonic", emoji:"🔊",ru:"звуковой",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","ɒ","n","ɪ","k"]},
+    {word:"civic", emoji:"🏛️",ru:"гражданский",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","ɪ","v","ɪ","k"]},
+    {word:"mimic", emoji:"🎭",ru:"имитировать",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["m","ɪ","m","ɪ","k"]},
+    {word:"panic", emoji:"😱",ru:"паника",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["p","æ","n","ɪ","k"]},
+    {word:"manic", emoji:"🌀",ru:"маниакальный",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["m","æ","n","ɪ","k"]},
+    {word:"lemon", emoji:"🍋",ru:"лимон",en:"lemon",es:"limón",zh:"柠檬",hi:"नींबू",ar:"ليمون",fr:"citron", ph:["l","e","m","ə","n"]},
+    {word:"melon", emoji:"🍈",ru:"дыня",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["m","e","l","ə","n"]},
+    {word:"panda", emoji:"🐼",ru:"панда",en:"panda",es:"panda",zh:"熊猫",hi:"पांडा",ar:"باندا",fr:"panda", ph:["p","æ","n","d","ə"]},
+    {word:"solid", emoji:"🧱",ru:"твёрдый",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["s","ɒ","l","ɪ","d"]},
+    {word:"robot", emoji:"🤖",ru:"робот",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["r","ɒ","b","ɒ","t"]},
+    {word:"timid", emoji:"😶",ru:"робкий",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["t","ɪ","m","ɪ","d"]},
+    {word:"rivet", emoji:"🔩",ru:"заклёпка",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["r","ɪ","v","e","t"]},
+  ],
+};
+
+var ALPHA = [
+  {l:"A",ph:"/æ/ — ant, axe"},  {l:"B",ph:"/b/ — bat, bee"},
+  {l:"C",ph:"/k/ — cat, cow"},  {l:"D",ph:"/d/ — dog, duck"},
+  {l:"E",ph:"/e/ — egg, elk"},  {l:"F",ph:"/f/ — fox, frog"},
+  {l:"G",ph:"/g/ — goat, gem"}, {l:"H",ph:"/h/ — hat, hill"},
+  {l:"I",ph:"/ɪ/ — ice, ivy"},  {l:"J",ph:"/dʒ/ — jug, jam"},
+  {l:"K",ph:"/k/ — key, kite"}, {l:"L",ph:"/l/ — leg, lamp"},
+  {l:"M",ph:"/m/ — map, moon"}, {l:"N",ph:"/n/ — net, nose"},
+  {l:"O",ph:"/ɒ/ — ox, oak"},   {l:"P",ph:"/p/ — pig, pear"},
+  {l:"Q",ph:"/kw/ — ..."},      {l:"R",ph:"/r/ — rod, rose"},
+  {l:"S",ph:"/s/ — sun, snow"}, {l:"T",ph:"/t/ — tin, tide"},
+  {l:"U",ph:"/ʌ/ — bug, urn"},  {l:"V",ph:"/v/ — van, vine"},
+  {l:"W",ph:"/w/ — web, wolf"}, {l:"X",ph:"/ks/ — fox, ox"},
+  {l:"Y",ph:"/j/ — yak, yam"},  {l:"Z",ph:"/z/ — zebra, zip"},
+];
+
+function isSimpleSpellingWord(item){
+  if(item.word.length!==item.ph.length) return false;
+  return item.ph.every(function(sound){ return sound.length===1; });
+}
+
+Object.keys(WORDS).forEach(function(cat){
+  WORDS[cat]=WORDS[cat].filter(isSimpleSpellingWord);
+});
+
+var ALL_WORDS = [];
+Object.keys(WORDS).forEach(function(cat){ WORDS[cat].forEach(function(w){ ALL_WORDS.push(w); }); });
+
+var ALL_CATEGORY_ID = '__all__';
+var allWordsShuffled = [];
+
+function resetAllWords(){
+  allWordsShuffled = shuffle(ALL_WORDS.slice());
+}
+
+Object.keys(WORDS).forEach(function(cat){ shuffle(WORDS[cat]); });
+resetAllWords();
+
+var cats = Object.keys(WORDS);
+var currentCat = cats[0];
+var currentIdx = 0;
+var mode = 'learn';
+var score = 0;
+var streak = 0;
+var synth = window.speechSynthesis;
+var voices = [];
+var guessAnswered = false;
+var selectedAlphaLetter = null;
+
+function loadVoices(){ voices = synth.getVoices(); }
+if(synth.onvoiceschanged !== undefined) synth.onvoiceschanged = loadVoices;
+loadVoices();
+
+function getVoice(){
+  return voices.find(function(v){return v.lang==='en-US';})
+      || voices.find(function(v){return v.lang.startsWith('en-GB');})
+      || voices.find(function(v){return v.lang.startsWith('en');})
+      || null;
+}
+
+function speak(text, rate, onEnd){
+  synth.cancel();
+  var v=getVoice();
+  if(!v){
+    // No TTS voice available - read letter by letter
+    playLetterByLetter(text, onEnd);
+    return;
+  }
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang='en-US'; u.rate=rate||0.82; u.pitch=1.05;
+  if(v) u.voice=v;
+  u.onend=onEnd||null;
+  synth.speak(u);
+}
+
+function playLetterByLetter(text, onEnd){
+  var letters = text.split('');
+  var i = 0;
+  function playNext(){
+    if(i > 0) litTile(i-1, false);
+    if(i < letters.length){
+      litTile(i, true);
+      playLetterSnd(letters[i].toLowerCase(), playNext);
+      i++;
+    } else {
+      if(onEnd) onEnd();
+    }
+  }
+  playNext();
+}
+
+function playLetterSnd(letter, cb){
+  var a = new Audio('snd/'+letter.toLowerCase()+'.mp3');
+  a.onended = cb||null;
+  a.onerror = function(){ if(cb) cb(); };
+  a.play().catch(function(){ if(cb) cb(); });
+}
+
+function getActiveWords(){
+  return currentCat===ALL_CATEGORY_ID ? allWordsShuffled : WORDS[currentCat];
+}
+
+function currentWord(){
+  var words=getActiveWords();
+  if(!words || words.length===0) return null;
+  if(currentIdx>=words.length) currentIdx=0;
+  return words[currentIdx];
+}
+
+function setStatus(msg, on){
+  var el=document.getElementById('status');
+  el.textContent=msg; el.className='status'+(on?' on':'');
+}
+
+function updateScore(){ document.getElementById('score-badge').textContent='⭐ '+score; }
+
+function updateStreak(){
+  var el=document.getElementById('streak');
+  if(streak>=2){
+    el.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="var(--accent2)" stroke="none"><path d="M12 2C8 7 4 10 4 14a8 8 0 0016 0c0-4-4-7-8-12z"/></svg> '+tr('streak',{n:streak});
+  } else { el.innerHTML=''; }
+}
+
+function litTile(idx, on){
+  var tiles=document.querySelectorAll('#tiles-row .tile');
+  if(tiles[idx]) tiles[idx].classList.toggle('lit', on);
+}
+
+function sayLetter(idx){
+  var w=currentWord();
+  var tiles=document.querySelectorAll('#tiles-row .tile');
+  if(tiles[idx]){ tiles[idx].classList.add('flash'); setTimeout(function(){ tiles[idx].classList.remove('flash'); },320); }
+  litTile(idx, true);
+  setStatus('/'+w.ph[idx]+'/', true);
+  playLetterSnd(w.word[idx].toLowerCase(), function(){ litTile(idx, false); setStatus(''); });
+}
+
+function flashTiles(word){
+  var btn=document.getElementById('play-btn');
+  var wrap=document.getElementById('img-wrap');
+  if(btn) btn.classList.add('playing');
+  if(wrap) wrap.classList.add('playing');
+  setStatus(tr('listen'), true);
+  var tiles=document.querySelectorAll('#tiles-row .tile');
+  var i=0;
+  function flashNext(){
+    if(i>0&&tiles[i-1]) tiles[i-1].classList.remove('flash');
+    if(i<word.length){ if(tiles[i]) tiles[i].classList.add('flash'); i++; setTimeout(flashNext,360); }
+    else { setTimeout(function(){ tiles.forEach(function(t){t.classList.remove('flash');}); if(btn) btn.classList.remove('playing'); if(wrap) wrap.classList.remove('playing'); setStatus(''); },320); }
+  }
+  var em=document.getElementById('img-emoji');
+  if(em){ em.classList.remove('pop'); void em.offsetWidth; em.classList.add('pop'); }
+  flashNext();
+}
+
+function sayWord(){
+  var w=currentWord();
+  flashTiles(w.word);
+  speak(w.word, 0.78);
+}
+
+function onImageClick(){ sayWord(); }
+
+function setMode(m){
+  mode=m;
+  document.getElementById('btn-learn').className='mode-btn'+(m==='learn'?' active':'');
+  document.getElementById('btn-guess').className='mode-btn'+(m==='guess'?' active':'');
+  document.getElementById('btn-review').className='mode-btn'+(m==='review'?' active':'');
+  render(false);
+}
+
+function randItems(arr, n, exclude){
+  var pool=arr.filter(function(x){ return x!==exclude; });
+  var res=[]; var used={};
+  while(res.length<n&&pool.length>0){
+    var i=randInt(pool.length);
+    if(!used[i]){ used[i]=1; res.push(pool[i]); }
+  }
+  return res;
+}
+
+function randInt(max){
+  if(max<=0) return 0;
+  if(window.crypto && window.crypto.getRandomValues){
+    var r = new Uint32Array(1);
+    window.crypto.getRandomValues(r);
+    return r[0] % max;
+  }
+  return Math.floor(Math.random()*max);
+}
+
+function shuffle(arr){ for(var i=arr.length-1;i>0;i--){ var j=randInt(i+1); var t=arr[i];arr[i]=arr[j];arr[j]=t; } return arr; }
+
+function loadWordImage(word, onLoad, onFail){
+  var formats=['png','svg'];
+  var i=0;
+  function tryNext(){
+    if(i>=formats.length){ if(onFail) onFail(); return; }
+    var src='img/'+word.toLowerCase()+'.'+formats[i++];
+    var img=new Image();
+    img.onload=function(){ onLoad(img, src); };
+    img.onerror=tryNext;
+    img.src=src;
+  }
+  tryNext();
+}
+
+function renderGuess(){
+  var w=currentWord();
+  if(!w) return;
+  guessAnswered=false;
+  var guessEmojiEl=document.getElementById('guess-emoji');
+  if(guessEmojiEl){
+    loadWordImage(w.word,function(_img,src){
+      guessEmojiEl.innerHTML='<img src="'+src+'" style="max-width:80px;max-height:80px;object-fit:contain">';
+    },function(){
+      guessEmojiEl.textContent=w.emoji;
+    });
+  }
+  document.getElementById('guess-prompt').textContent=tr('guessPrompt');
+  document.getElementById('guess-result').textContent='';
+  var opts=shuffle([w].concat(randItems(ALL_WORDS,3,w)));
+  var el=document.getElementById('guess-opts');
+  el.innerHTML='';
+  opts.forEach(function(opt){
+    var langAtRender=currentLang;
+    var btn=document.createElement('button');
+    btn.className='guess-opt';
+    btn.innerHTML='<span class="go-en">'+opt.word.toUpperCase()+'</span><span class="go-ru">'+getWordRuSync(opt)+'</span>';
+    var ruEl=btn.querySelector('.go-ru');
+    updateWordRuAsync(opt.ru, langAtRender, function(t){
+      if(ruEl && document.body.contains(ruEl)) ruEl.textContent=t;
+    });
+    btn.onclick=function(){
+      if(guessAnswered) return;
+      guessAnswered=true;
+      var ok=(opt===w);
+      btn.className='guess-opt '+(ok?'correct':'wrong');
+      if(!ok) opts.forEach(function(o,i){ if(o===w) el.children[i].className='guess-opt correct'; });
+      var res=document.getElementById('guess-result');
+      if(ok){ score+=10; streak++; res.textContent='✅ +10 ⭐'; res.style.color='var(--green)'; updateScore(); updateStreak(); }
+      else { streak=0; res.textContent='❌'; res.style.color='var(--accent)'; updateStreak(); }
+      speak(w.word,0.8);
+      setTimeout(function(){
+        if(mode==='guess' && currentWord()===w) go(1);
+      }, 900);
+    };
+    el.appendChild(btn);
+  });
+}
+
+function setImageForWord(w){
+  var emojiEl=document.getElementById('img-emoji');
+  var bgEl=document.getElementById('img-bg');
+
+  // Set emoji placeholder immediately and tag elements with current word
+  if(emojiEl){ emojiEl.textContent=w.emoji; emojiEl.setAttribute('data-word',w.word); }
+  if(bgEl){ bgEl.textContent=w.emoji; bgEl.setAttribute('data-word',w.word); }
+
+  var wword=w.word;
+  loadWordImage(wword,function(_img,src){
+    // Use dataset check on the element itself — reliable even with async
+    var el=document.getElementById('img-emoji');
+    var bg=document.getElementById('img-bg');
+    if(el && el.getAttribute('data-word')===wword)
+      el.innerHTML='<img src="'+src+'" width="100" height="100" style="width:100px;height:100px;object-fit:contain;display:block">';
+    if(bg && bg.getAttribute('data-word')===wword)
+      bg.innerHTML='<img src="'+src+'" width="180" height="180" style="width:180px;height:180px;object-fit:contain;display:block">';
+  },null);
+}
+
+function renderReview(){
+  var grid=document.getElementById('review-grid');
+  var words=getActiveWords()||[];
+  grid.innerHTML='';
+  words.forEach(function(w){
+    var card=document.createElement('div');
+    card.className='review-card';
+    card.tabIndex=0;
+    card.style.cursor='pointer';
+    card.onclick=function(){ speak(w.word,0.8); };
+    card.onkeydown=function(e){
+      if(e.key==='Enter' || e.key===' '){
+        e.preventDefault();
+        speak(w.word,0.8);
+      }
+    };
+
+    var thumb=document.createElement('div');
+    thumb.className='review-thumb';
+    thumb.textContent=w.emoji;
+    loadWordImage(w.word,function(_img,src){
+      thumb.innerHTML='<img src="'+src+'" alt="'+w.word+'">';
+    },function(){
+      thumb.textContent=w.emoji;
+    });
+
+    var en=document.createElement('div');
+    en.className='review-en';
+    en.textContent=w.word.toUpperCase();
+
+    var ru=document.createElement('div');
+    ru.className='review-ru';
+    ru.textContent=getWordRuSync(w);
+    var langAtRender=currentLang;
+    updateWordRuAsync(w.ru, langAtRender, function(t){
+      if(ru && document.body.contains(ru)) ru.textContent=t;
+    });
+
+    card.appendChild(thumb);
+    card.appendChild(en);
+    card.appendChild(ru);
+    grid.appendChild(card);
+  });
+}
+
+
+function render(animate){
+  var w=currentWord();
+  var words=getActiveWords();
+  if(!w || !words || words.length===0) return;
+  var inner=document.getElementById('scene-inner');
+  function doRender(){
+    var langAtRender=currentLang;
+    setImageForWord(w);
+    document.getElementById('word-en').textContent=w.word.toUpperCase();
+    var ruEl=document.getElementById('word-ru');
+    ruEl.setAttribute('data-word', w.word);
+    ruEl.textContent=getWordRuSync(w);
+    updateWordRuAsync(w.ru, langAtRender, function(t){
+      var el=document.getElementById('word-ru');
+      if(el && el.getAttribute('data-word')===w.word) el.textContent=t;
+    });
+    var playLabel=document.getElementById('play-label');
+    if(playLabel) playLabel.textContent=w.word.toUpperCase();
+    var row=document.getElementById('tiles-row');
+    row.innerHTML='';
+    w.word.split('').forEach(function(ch,i){
+      var t=document.createElement('div');
+      t.className='tile';
+      t.tabIndex=0;
+      t.innerHTML='<span class="tile-ltr">'+ch.toUpperCase()+'</span>';
+      (function(idx){ t.onclick=function(){ sayLetter(idx); }; })(i);
+      (function(idx){
+        t.onkeydown=function(e){
+          if(e.key==='Enter' || e.key===' '){
+            e.preventDefault();
+            sayLetter(idx);
+          }
+        };
+      })(i);
+      row.appendChild(t);
+    });
+    var pct=Math.round((currentIdx+1)/words.length*100);
+    document.getElementById('prog-fill').style.width=pct+'%';
+    document.getElementById('guess-result').textContent='';
+    document.getElementById('learn-block').style.display=(mode==='learn'?'':'none');
+    document.getElementById('guess-block').style.display=(mode==='guess'?'':'none');
+    document.getElementById('review-block').style.display=(mode==='review'?'':'none');
+    document.getElementById('streak').style.display=(mode==='review'?'none':'');
+    document.getElementById('status').style.display='none';
+    document.getElementById('swipe-hint').style.display='none';
+    if(mode==='guess'){
+      renderGuess();
+    }
+    if(mode==='review'){
+      renderReview();
+    }
+    inner.classList.remove('out');
+  }
+  if(animate===false){ doRender(); return; }
+  inner.classList.add('out');
+  setTimeout(doRender,190);
+}
+
+function renderTabs(){
+  var el=document.getElementById('tabs');
+  el.innerHTML='';
+
+  var allBtn=document.createElement('button');
+  allBtn.className='tab'+(currentCat===ALL_CATEGORY_ID?' active':'');
+  allBtn.textContent='🌐';
+  allBtn.onclick=function(){
+    resetAllWords();
+    currentCat=ALL_CATEGORY_ID;
+    currentIdx=0;
+    streak=0;
+    updateStreak();
+    renderTabs();
+    render(true);
+  };
+  el.appendChild(allBtn);
+
+  cats.forEach(function(cat){
+    var btn=document.createElement('button');
+    btn.className='tab'+(cat===currentCat?' active':'');
+    btn.textContent=(cat.split(' ')[0]||'•');
+    (function(c){ btn.onclick=function(){ stopAutoplay(); shuffle(WORDS[c]); currentCat=c; currentIdx=0; streak=0; updateStreak(); renderTabs(); render(true); }; })(cat);
+    el.appendChild(btn);
+  });
+}
+
+function go(dir){
+  var words=getActiveWords();
+  var nextIdx=currentIdx+dir;
+  if(nextIdx>=words.length){
+    if(currentCat===ALL_CATEGORY_ID){ resetAllWords(); words=getActiveWords(); }
+    else { shuffle(words); }
+    currentIdx=0;
+  } else if(nextIdx<0){
+    if(currentCat===ALL_CATEGORY_ID){ resetAllWords(); words=getActiveWords(); }
+    else { shuffle(words); }
+    currentIdx=words.length-1;
+  } else {
+    currentIdx=nextIdx;
+  }
+  render(true);
+}
+
+// ===== ALPHABET =====
+
+function buildAlphaGrid(){
+  var grid=document.getElementById('alpha-grid');
+  grid.innerHTML='';
+  ALPHA.forEach(function(item){
+    var card=document.createElement('div');
+    card.className='alpha-card';
+    card.id='acard-'+item.l;
+    card.innerHTML='<span class="ac-ltr">'+item.l+'</span>';
+    (function(it){ card.onclick=function(){ selectAlphaLetter(it); }; })(item);
+    grid.appendChild(card);
+  });
+}
+
+function selectAlphaLetter(item){
+  if(selectedAlphaLetter){
+    var prev=document.getElementById('acard-'+selectedAlphaLetter.l);
+    if(prev) prev.classList.remove('active-card');
+  }
+  selectedAlphaLetter=item;
+  var card=document.getElementById('acard-'+item.l);
+  if(card) card.classList.add('active-card');
+
+  var det=document.getElementById('alpha-detail');
+  det.style.display='block';
+  document.getElementById('alpha-det-ltr').textContent=item.l+' '+item.l.toLowerCase();
+
+  playLetterSnd(item.l.toLowerCase(), null);
+
+  var lc=item.l.toLowerCase();
+  var found=ALL_WORDS.filter(function(w){ return w.word[0].toLowerCase()===lc; });
+  // deduplicate by word
+  var seen={};
+  found=found.filter(function(w){ if(seen[w.word]) return false; seen[w.word]=1; return true; });
+
+  var wb=document.getElementById('alpha-words-block');
+  var wl=document.getElementById('alpha-word-list');
+  var wt=document.getElementById('alpha-words-title');
+  wl.innerHTML='';
+
+  if(found.length>0){
+    wb.style.display='block';
+    wt.textContent=tr('alphaWords',{letter:item.l,count:found.length});
+    found.forEach(function(w){
+      var langAtRender=currentLang;
+      var row=document.createElement('div');
+      row.style.cssText='display:flex;flex-direction:column';
+
+      var chip=document.createElement('div');
+      chip.className='alpha-word-chip';
+      chip.innerHTML='<span class="ch-emoji">'+w.emoji+'</span>'
+        +'<span class="ch-word">'+w.word.toUpperCase()+'</span>'
+        +'<span class="ch-ru">'+getWordRuSync(w)+'</span>'
+        +'<span class="ch-hint">▶</span>';
+      var chipRuEl=chip.querySelector('.ch-ru');
+      updateWordRuAsync(w.ru, langAtRender, function(t){
+        if(chipRuEl && document.body.contains(chipRuEl)) chipRuEl.textContent=t;
+      });
+
+      var panel=document.createElement('div');
+      panel.className='alpha-word-expand';
+
+      // big emoji image block
+      var imgBlock=document.createElement('div');
+      imgBlock.className='aex-img';
+      imgBlock.innerHTML='<div class="aex-img-bg">'+w.emoji+'</div>'
+        +'<div class="aex-img-em" id="aex-em-'+w.word+'">'+w.emoji+'</div>';
+      imgBlock.onclick=function(e){
+        e.stopPropagation();
+        speak(w.word,0.8);
+        var em=document.getElementById('aex-em-'+w.word);
+        if(em){ em.classList.remove('pop'); void em.offsetWidth; em.classList.add('pop'); }
+      };
+
+      // letter tiles
+      var tilesDiv=document.createElement('div');
+      tilesDiv.className='alpha-exp-tiles';
+      w.word.split('').forEach(function(ch,idx){
+        var t=document.createElement('div');
+        t.className='alpha-exp-tile';
+        t.innerHTML='<span class="et-ltr">'+ch.toUpperCase()+'</span>';
+        t.onclick=function(e){
+          e.stopPropagation();
+          t.classList.add('flash');
+          setTimeout(function(){ t.classList.remove('flash'); },300);
+          playLetterSnd(ch.toLowerCase(), null);
+        };
+        tilesDiv.appendChild(t);
+      });
+
+      // play word button
+      var playBtn=document.createElement('button');
+      playBtn.className='alpha-exp-play';
+      playBtn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> '
+        +w.word.toUpperCase()+' — '+getWordRuSync(w);
+      updateWordRuAsync(w.ru, langAtRender, function(t){
+        if(playBtn && document.body.contains(playBtn)){
+          playBtn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> '+w.word.toUpperCase()+' — '+t;
+        }
+      });
+      playBtn.onclick=function(e){
+        e.stopPropagation();
+        speak(w.word,0.8);
+      };
+
+      panel.appendChild(imgBlock);
+      panel.appendChild(tilesDiv);
+      panel.appendChild(playBtn);
+
+      var isOpen=false;
+      chip.onclick=function(){
+        isOpen=!isOpen;
+        panel.className='alpha-word-expand'+(isOpen?' open':'');
+        chip.className='alpha-word-chip'+(isOpen?' expanded':'');
+        if(isOpen) speak(w.word,0.8);
+      };
+
+      row.appendChild(chip);
+      row.appendChild(panel);
+      wl.appendChild(row);
+    });
+  } else {
+    wb.style.display='block';
+    wt.textContent=tr('alphaWordsNone',{letter:item.l});
+  }
+}
+
+function playSelectedLetter(){
+  if(selectedAlphaLetter) playLetterSnd(selectedAlphaLetter.l.toLowerCase(), null);
+}
+
+function showScreen(s){
+  stopAutoplay();
+  document.getElementById('screen-words').style.display=(s==='words'?'block':'none');
+  document.getElementById('screen-alpha').style.display=(s==='alpha'?'block':'none');
+  document.getElementById('screen-sound').style.display=(s==='sound'?'block':'none');
+  document.getElementById('navtab-words').className='nav-tab'+(s==='words'?' active':'');
+  document.getElementById('navtab-alpha').className='nav-tab'+(s==='alpha'?' active':'');
+  document.getElementById('navtab-sound').className='nav-tab'+(s==='sound'?' active':'');
+  if(s==='sound') initSoundGuess();
+}
+
+var soundCurLetter=null;
+var soundCurOptions=null;
+var soundCurAnswered=false;
+
+function getAlphabetLetters(){
+  var letters=[];
+  for(var i=0;i<26;i++) letters.push(String.fromCharCode(97+i));
+  return letters;
+}
+
+function getSoundDistinctLetters(){
+  // Исключить пары c и k которые звучат одинаково
+  var allLetters=getAlphabetLetters();
+  return allLetters.filter(function(l){ return !(l==='c' || l==='k'); });
+}
+
+function initSoundGuess(){
+  var letters=getSoundDistinctLetters();
+  soundCurLetter=letters[randInt(letters.length)];
+  var options=randItems(letters, 3, soundCurLetter);
+  options.push(soundCurLetter);
+  soundCurOptions=shuffle(options);
+  soundCurAnswered=false;
+  
+  document.getElementById('sound-prompt').textContent=tr('soundPick');
+  var optsDiv=document.getElementById('sound-opts');
+  optsDiv.innerHTML='';
+  for(var i=0;i<soundCurOptions.length;i++){
+    var opt=document.createElement('div');
+    opt.className='sound-opt';
+    opt.textContent=soundCurOptions[i].toUpperCase();
+    opt.setAttribute('data-idx',i);
+    opt.onclick=function(){ checkSoundAnswer(parseInt(this.getAttribute('data-idx'))); };
+    optsDiv.appendChild(opt);
+  }
+  document.getElementById('sound-result').textContent='';
+  playLetterSnd(soundCurLetter, null);
+}
+
+function playSoundLetter(){
+  if(soundCurLetter) playLetterSnd(soundCurLetter, null);
+}
+
+function checkSoundAnswer(idx){
+  if(soundCurAnswered) return;
+  soundCurAnswered=true;
+  var correct=(soundCurOptions[idx]===soundCurLetter);
+  var opts=document.querySelectorAll('.sound-opt');
+  for(var i=0;i<opts.length;i++){
+    if(i===idx){
+      opts[i].className='sound-opt'+(correct?' correct':' wrong');
+    } else if(soundCurOptions[i]===soundCurLetter){
+      opts[i].className='sound-opt correct';
+    }
+  }
+  document.getElementById('sound-result').textContent=(correct?'✅':'❌');
+  setTimeout(initSoundGuess, 1500);
+}
+
+var tX=0;
+document.addEventListener('touchstart',function(e){tX=e.touches[0].clientX;},{passive:true});
+document.addEventListener('touchend',function(e){
+  var dx=e.changedTouches[0].clientX-tX;
+  if(Math.abs(dx)>55&&document.getElementById('screen-words').style.display!=='none'&&mode!=='review'){ stopAutoplay(); go(dx<0?1:-1); }
+},{passive:true});
+
+document.addEventListener('keydown',function(e){
+  if(document.getElementById('screen-words').style.display==='none') return;
+  if(mode==='review') return;
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){ stopAutoplay(); go(1); }
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ stopAutoplay(); go(-1); }
+  if(e.key===' ') sayWord();
+});
+
+var autoplayTimer=null;
+var autoplayActive=false;
+var AUTOPLAY_DELAY=2400;
+
+var VERSION='1.1.0';
+var DEFAULT_LANG='ru';
+var currentLang=localStorage.getItem('ui_lang')||DEFAULT_LANG;
+
+var I18N={
+  ru:{title:'Буквы и слова',guessWhat:'Какое слово?',swipe:'← свайп →',guessPrompt:'Как называется по-английски?',guessOk:'✅ Верно! +10 очков',guessBad:'❌ Нет — это {word}',streak:'Серия: {n}',listen:'Слушай...',soundOk:'✓ Верно!',soundBad:'✗ Неверно. Буква: {letter}'},
+  fr:{title:'Lettres et mots',guessWhat:'Quel mot?',swipe:'← glisser →',guessPrompt:'Quel est ce mot en anglais?',guessOk:'✅ Correct! +10 points',guessBad:'❌ Non — c\'est {word}',streak:'Série: {n}',listen:'Écoute...',soundOk:'✓ Correct!',soundBad:'✗ Incorrect. Lettre: {letter}'},
+  es:{title:'Letras y Palabras',guessWhat:'¿Que palabra?',swipe:'← desliza →',guessPrompt:'¿Como se llama en ingles?',guessOk:'✅ Correcto! +10 puntos',guessBad:'❌ No — es {word}',streak:'Racha: {n}',listen:'Escuchando...',soundOk:'✓ Correcto!',soundBad:'✗ Incorrecto. Letra: {letter}'},
+  zh:{title:'字母与单词',guessWhat:'哪个单词?',swipe:'← 滑动 →',guessPrompt:'这个英文单词是什么?',guessOk:'✅ 正确! +10分',guessBad:'❌ 不对 — 是 {word}',streak:'连击: {n}',listen:'聆听中...',soundOk:'✓ 正确!',soundBad:'✗ 错误。字母: {letter}'},
+  hi:{title:'अक्षर और शब्द',guessWhat:'कौन सा शब्द?',swipe:'← स्वाइप →',guessPrompt:'इसका अंग्रेजी शब्द क्या है?',guessOk:'✅ सही! +10 अंक',guessBad:'❌ नहीं — यह {word} है',streak:'स्ट्रिक: {n}',listen:'सुन रहे हैं...',soundOk:'✓ सही!',soundBad:'✗ गलत। अक्षर: {letter}'},
+  ar:{title:'حروف وكلمات',guessWhat:'ما الكلمة؟',swipe:'← اسحب →',guessPrompt:'ما الكلمة بالإنجليزية؟',guessOk:'✅ صحيح! +10 نقاط',guessBad:'❌ لا — هي {word}',streak:'سلسلة: {n}',listen:'جارٍ الاستماع...',soundOk:'✓ صحيح!',soundBad:'✗ خطأ. الحرف: {letter}'}
+};
+
+function tr(key, vars){
+  var pack=I18N[currentLang]||I18N.ru;
+  var txt=pack[key]||I18N.ru[key]||key;
+  if(vars){
+    Object.keys(vars).forEach(function(k){ txt=txt.replace(new RegExp('\\{'+k+'\\}','g'), String(vars[k])); });
+  }
+  return txt;
+}
+
+function applyLocale(){
+  document.title=tr('title');
+  var langSel=document.getElementById('lang-select');
+  if(langSel) langSel.value=currentLang;
+  document.documentElement.lang=currentLang;
+  document.documentElement.dir=(currentLang==='ar'?'rtl':'ltr');
+
+  var guessPrompt=document.getElementById('guess-prompt');
+  if(guessPrompt) guessPrompt.textContent=tr('guessWhat');
+  var swipe=document.getElementById('swipe-hint');
+  if(swipe) swipe.textContent=tr('swipe');
+}
+
+function setLang(lang){
+  if(!I18N[lang]) lang=DEFAULT_LANG;
+  currentLang=lang;
+  localStorage.setItem('ui_lang', currentLang);
+  applyLocale();
+  render(false);
+}
+
+var DICT_CACHE_KEY='dict_translations_v1';
+var dictTranslations={};
+var dictPending={};
+
+try{
+  var rawCache=localStorage.getItem(DICT_CACHE_KEY);
+  if(rawCache) dictTranslations=JSON.parse(rawCache)||{};
+}catch(_e){ dictTranslations={}; }
+
+function saveDictTranslations(){
+  try{ localStorage.setItem(DICT_CACHE_KEY, JSON.stringify(dictTranslations)); }catch(_e){}
+}
+
+function getCachedDictTranslation(src, lang){
+  if(lang==='ru') return src;
+  if(!dictTranslations[lang]) return '';
+  return dictTranslations[lang][src]||'';
+}
+
+function setCachedDictTranslation(src, lang, value){
+  if(lang==='ru') return;
+  if(!dictTranslations[lang]) dictTranslations[lang]={};
+  dictTranslations[lang][src]=value;
+  saveDictTranslations();
+}
+
+function translateRuText(src, lang, cb){
+  if(!src){ cb(''); return; }
+  if(lang==='ru'){ cb(src); return; }
+
+  var cached=getCachedDictTranslation(src, lang);
+  if(cached){ cb(cached); return; }
+
+  var key=lang+'::'+src;
+  if(dictPending[key]){ dictPending[key].push(cb); return; }
+  dictPending[key]=[cb];
+
+  var url='https://translate.googleapis.com/translate_a/single?client=gtx&sl=ru&tl='+encodeURIComponent(lang)+'&dt=t&q='+encodeURIComponent(src);
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var translated=src;
+      if(data && data[0] && data[0].length){
+        translated=data[0].map(function(x){ return x && x[0] ? x[0] : ''; }).join('');
+      }
+      setCachedDictTranslation(src, lang, translated);
+      var waiters=dictPending[key]||[];
+      delete dictPending[key];
+      waiters.forEach(function(fn){ fn(translated); });
+    })
+    .catch(function(){
+      var waiters=dictPending[key]||[];
+      delete dictPending[key];
+      waiters.forEach(function(fn){ fn(src); });
+    });
+}
+
+function getWordRuSync(w){
+  if(!w) return '';
+  if(currentLang==='ru') return w.ru;
+  var cached=getCachedDictTranslation(w.ru, currentLang);
+  return cached||w.ru;
+}
+
+function updateWordRuAsync(src, lang, applyFn){
+  translateRuText(src, lang, function(text){
+    if(currentLang!==lang) return;
+    applyFn(text);
+  });
+}
+
+function toggleAutoplay(){
+  if(autoplayActive){ stopAutoplay(); }
+  else { startAutoplay(); }
+}
+
+function startAutoplay(){
+  autoplayActive=true;
+  var btn=document.getElementById('btn-autoplay');
+  if(btn){ btn.textContent='■'; btn.className='autoplay-btn on'; }
+  runAutoplayStep();
+}
+
+function stopAutoplay(){
+  autoplayActive=false;
+  clearTimeout(autoplayTimer);
+  if(synth) synth.cancel();
+  var btn=document.getElementById('btn-autoplay');
+  if(btn){ btn.textContent='▶'; btn.className='autoplay-btn'; }
+}
+
+document.addEventListener('click', function(e){
+  if(!autoplayActive) return;
+  if(e && e.target && e.target.id==='btn-autoplay') return;
+  stopAutoplay();
+});
+
+function runAutoplayStep(){
+  if(!autoplayActive) return;
+  var w=currentWord();
+  if(!w){ stopAutoplay(); return; }
+  speak(w.word, 0.78, function(){
+    if(!autoplayActive) return;
+    autoplayTimer=setTimeout(function(){
+      if(!autoplayActive) return;
+      go(1);
+      autoplayTimer=setTimeout(runAutoplayStep, 400);
+    }, 800);
+  });
+}
+
+buildAlphaGrid();
+renderTabs();
+render(false);
+applyLocale();
+
+// Display version
+var vDiv=document.createElement('div');
+vDiv.className='version-display';
+vDiv.textContent='v'+VERSION;
+document.body.appendChild(vDiv);
+</script>
+</body>
+</html>
