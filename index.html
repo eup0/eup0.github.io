@@ -187,11 +187,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
     <div class="tabs" id="tabs"></div>
     <select id="lang-select" class="lang-select" onchange="setLang(this.value)">
       <option value="ru">🇷🇺</option>
-      <option value="fr">🇫🇷</option>
-      <option value="es">🇪🇸</option>
-      <option value="zh">🇨🇳</option>
-      <option value="hi">🇮🇳</option>
-      <option value="ar">🇸🇦</option>
+      <option value="en">🇬🇧</option>
     </select>
     <button id="btn-autoplay" class="autoplay-btn" onclick="toggleAutoplay()">▶</button>
     <div class="score-badge" id="score-badge">⭐ 0</div>
@@ -622,6 +618,31 @@ var WORDS = {
     {word:"timid", emoji:"😶",ru:"робкий",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["t","ɪ","m","ɪ","d"]},
     {word:"rivet", emoji:"🔩",ru:"заклёпка",en:"",es:"",zh:"",hi:"",ar:"",fr:"", ph:["r","ɪ","v","e","t"]},
   ],
+  "🎨 Цвета":[
+    {word:"red", emoji:"🔴",ru:"красный",en:"red", ph:["r","e","d"]},
+    {word:"orange", emoji:"🟠",ru:"оранжевый",en:"orange", ph:["ɒ","r","ɪ","n","dʒ"]},
+    {word:"yellow", emoji:"🟡",ru:"жёлтый",en:"yellow", ph:["j","e","l","əʊ"]},
+    {word:"green", emoji:"🟢",ru:"зелёный",en:"green", ph:["g","r","iː","n"]},
+    {word:"blue", emoji:"🔵",ru:"синий",en:"blue", ph:["b","l","uː"]},
+    {word:"purple", emoji:"🟣",ru:"фиолетовый",en:"purple", ph:["p","ɜː","p","əl"]},
+    {word:"black", emoji:"⚫",ru:"чёрный",en:"black", ph:["b","l","æ","k"]},
+    {word:"white", emoji:"⚪",ru:"белый",en:"white", ph:["w","aɪ","t"]},
+    {word:"brown", emoji:"🟤",ru:"коричневый",en:"brown", ph:["b","r","aʊ","n"]},
+    {word:"pink", emoji:"🩷",ru:"розовый",en:"pink", ph:["p","ɪ","ŋ","k"]},
+  ],
+  "🔢 Числа 0-10":[
+    {word:"zero", emoji:"0️⃣",ru:"ноль",en:"zero", ph:["z","ɪ","r","ə","ʊ"]},
+    {word:"one", emoji:"1️⃣",ru:"один",en:"one", ph:["w","ʌ","n"]},
+    {word:"two", emoji:"2️⃣",ru:"два",en:"two", ph:["t","uː"]},
+    {word:"three", emoji:"3️⃣",ru:"три",en:"three", ph:["θ","r","iː"]},
+    {word:"four", emoji:"4️⃣",ru:"четыре",en:"four", ph:["f","ɔː"]},
+    {word:"five", emoji:"5️⃣",ru:"пять",en:"five", ph:["f","aɪ","v"]},
+    {word:"six", emoji:"6️⃣",ru:"шесть",en:"six", ph:["s","ɪ","ks"]},
+    {word:"seven", emoji:"7️⃣",ru:"семь",en:"seven", ph:["s","e","v","ən"]},
+    {word:"eight", emoji:"8️⃣",ru:"восемь",en:"eight", ph:["eɪ","t"]},
+    {word:"nine", emoji:"9️⃣",ru:"девять",en:"nine", ph:["n","aɪ","n"]},
+    {word:"ten", emoji:"🔟",ru:"десять",en:"ten", ph:["t","e","n"]},
+  ],
 };
 
 var ALPHA = [
@@ -1017,10 +1038,18 @@ function renderTabs(){
   };
   el.appendChild(allBtn);
 
+  var tabLabels={
+    '🐾 Животные':'🐾',
+    '🏠 Вещи':'🏠',
+    '🎨 Цвета':'🎨',
+    '🔢 Числа 0-10':'0-10',
+    '✋ Словарь 5':'✋'
+  };
+
   cats.forEach(function(cat){
     var btn=document.createElement('button');
     btn.className='tab'+(cat===currentCat?' active':'');
-    btn.textContent=(cat.split(' ')[0]||'•');
+    btn.textContent=tabLabels[cat]||(cat.split(' ')[0]||'•');
     (function(c){ btn.onclick=function(){ stopAutoplay(); shuffle(WORDS[c]); currentCat=c; currentIdx=0; streak=0; updateStreak(); renderTabs(); render(true); }; })(cat);
     el.appendChild(btn);
   });
@@ -1270,11 +1299,7 @@ var currentLang=localStorage.getItem('ui_lang')||DEFAULT_LANG;
 
 var I18N={
   ru:{title:'Буквы и слова',guessWhat:'Какое слово?',swipe:'← свайп →',guessPrompt:'Как называется по-английски?',guessOk:'✅ Верно! +10 очков',guessBad:'❌ Нет — это {word}',streak:'Серия: {n}',listen:'Слушай...',soundOk:'✓ Верно!',soundBad:'✗ Неверно. Буква: {letter}'},
-  fr:{title:'Lettres et mots',guessWhat:'Quel mot?',swipe:'← glisser →',guessPrompt:'Quel est ce mot en anglais?',guessOk:'✅ Correct! +10 points',guessBad:'❌ Non — c\'est {word}',streak:'Série: {n}',listen:'Écoute...',soundOk:'✓ Correct!',soundBad:'✗ Incorrect. Lettre: {letter}'},
-  es:{title:'Letras y Palabras',guessWhat:'¿Que palabra?',swipe:'← desliza →',guessPrompt:'¿Como se llama en ingles?',guessOk:'✅ Correcto! +10 puntos',guessBad:'❌ No — es {word}',streak:'Racha: {n}',listen:'Escuchando...',soundOk:'✓ Correcto!',soundBad:'✗ Incorrecto. Letra: {letter}'},
-  zh:{title:'字母与单词',guessWhat:'哪个单词?',swipe:'← 滑动 →',guessPrompt:'这个英文单词是什么?',guessOk:'✅ 正确! +10分',guessBad:'❌ 不对 — 是 {word}',streak:'连击: {n}',listen:'聆听中...',soundOk:'✓ 正确!',soundBad:'✗ 错误。字母: {letter}'},
-  hi:{title:'अक्षर और शब्द',guessWhat:'कौन सा शब्द?',swipe:'← स्वाइप →',guessPrompt:'इसका अंग्रेजी शब्द क्या है?',guessOk:'✅ सही! +10 अंक',guessBad:'❌ नहीं — यह {word} है',streak:'स्ट्रिक: {n}',listen:'सुन रहे हैं...',soundOk:'✓ सही!',soundBad:'✗ गलत। अक्षर: {letter}'},
-  ar:{title:'حروف وكلمات',guessWhat:'ما الكلمة؟',swipe:'← اسحب →',guessPrompt:'ما الكلمة بالإنجليزية؟',guessOk:'✅ صحيح! +10 نقاط',guessBad:'❌ لا — هي {word}',streak:'سلسلة: {n}',listen:'جارٍ الاستماع...',soundOk:'✓ صحيح!',soundBad:'✗ خطأ. الحرف: {letter}'}
+  en:{title:'Letters and Words',guessWhat:'What word?',swipe:'← swipe →',guessPrompt:'What is this word in English?',guessOk:'✅ Correct! +10 points',guessBad:'❌ No — it is {word}',streak:'Streak: {n}',listen:'Listen...',soundOk:'✓ Correct!',soundBad:'✗ Incorrect. Letter: {letter}'}
 };
 
 function tr(key, vars){
@@ -1291,7 +1316,7 @@ function applyLocale(){
   var langSel=document.getElementById('lang-select');
   if(langSel) langSel.value=currentLang;
   document.documentElement.lang=currentLang;
-  document.documentElement.dir=(currentLang==='ar'?'rtl':'ltr');
+  document.documentElement.dir='ltr';
 
   var guessPrompt=document.getElementById('guess-prompt');
   if(guessPrompt) guessPrompt.textContent=tr('guessWhat');
