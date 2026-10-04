@@ -667,6 +667,7 @@ function isSimpleSpellingWord(item){
 }
 
 Object.keys(WORDS).forEach(function(cat){
+  if(cat.indexOf('Цвет')!==-1 || cat.indexOf('Числа')!==-1){ return; }
   WORDS[cat]=WORDS[cat].filter(isSimpleSpellingWord);
 });
 
